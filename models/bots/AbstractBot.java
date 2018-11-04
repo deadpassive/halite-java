@@ -39,7 +39,7 @@ public abstract class AbstractBot {
         ships = newShips;
     }
 
-    protected void run(final String[] args) {
+    public void run(final String[] args) {
         final long rngSeed;
         if (args.length > 1) {
             rngSeed = Integer.parseInt(args[1]);

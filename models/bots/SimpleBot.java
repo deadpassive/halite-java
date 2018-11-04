@@ -21,9 +21,14 @@ import models.ships.SimpleShip;
 
 import java.util.ArrayList;
 
+
 public class SimpleBot extends AbstractBot {
 
     private static SimpleBot INSTANCE;
+
+    public static void main(String[] args) {
+        SimpleBot.getInstance().run(args);
+    }
 
     private SimpleBot() {}
 

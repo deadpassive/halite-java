@@ -12,20 +12,18 @@
  */
 package models.bots;
 
-import hlt.Ship;
+import hlt.*;
 import models.ships.AbstractShip;
-import models.ships.SimpleShip;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public abstract class AbstractBot {
 
-    protected Map<Integer, AbstractShip> ships = new HashMap<>();
+    Map<Integer, AbstractShip> ships = new HashMap<>();
+    Game game;
+    Random randomGenerator;
 
-    protected void updateShips(Collection<Ship> shipStatuses) {
+    private void updateShips(Collection<Ship> shipStatuses) {
         Map<Integer, AbstractShip> newShips = new HashMap<>();
 
         for (Ship shipStatus : shipStatuses) {
@@ -33,7 +31,7 @@ public abstract class AbstractBot {
             if (ship != null) {
                 ships.get(shipStatus.id.id).update(shipStatus);
             } else {
-                ship = new SimpleShip(shipStatus);
+                ship = createShip(shipStatus);
             }
             newShips.put(ship.getId(), ship);
         }
@@ -41,4 +39,51 @@ public abstract class AbstractBot {
         ships = newShips;
     }
 
+    protected void run(final String[] args) {
+        final long rngSeed;
+        if (args.length > 1) {
+            rngSeed = Integer.parseInt(args[1]);
+        } else {
+            rngSeed = System.nanoTime();
+        }
+        randomGenerator = new Random(rngSeed);
+
+        this.game = new Game();
+
+        onGameStart();
+
+        // At this point "game" variable is populated with initial map data.
+        // This is a good place to do computationally expensive start-up pre-processing.
+        // As soon as you call "ready" function below, the 2 second per turn timer will start.
+        game.ready("MyJavaBot");
+
+        Log.log("Successfully created bot! My Player ID is " + game.myId + ". Bot rng seed is " + rngSeed + ".");
+
+        do {
+            game.updateFrame();
+
+            updateShips(game.me.ships.values());
+
+            onTurnStart();
+
+            game.endTurn(getCommandQueue());
+
+            onTurnEnd();
+
+        } while (game.turnNumber != Constants.MAX_TURNS);
+
+        onGameEnd();
+    }
+
+    protected abstract void onTurnStart();
+
+    protected abstract void onTurnEnd();
+
+    protected abstract void onGameStart();
+
+    protected abstract void onGameEnd();
+
+    protected abstract ArrayList<Command> getCommandQueue();
+
+    protected abstract AbstractShip createShip(Ship initialStatus);
 }

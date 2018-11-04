@@ -12,17 +12,16 @@
  */
 package models.bots;
 
-import hlt.*;
+import hlt.Command;
+import hlt.Constants;
+import hlt.Direction;
+import hlt.Ship;
 import models.ships.AbstractShip;
 import models.ships.SimpleShip;
 
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-import java.util.stream.Collectors;
 
 public class SimpleBot extends AbstractBot {
-
 
     private static SimpleBot INSTANCE;
 
@@ -35,55 +34,53 @@ public class SimpleBot extends AbstractBot {
         return INSTANCE;
     }
 
-    public void run(final String[] args) {
-        final long rngSeed;
-        if (args.length > 1) {
-            rngSeed = Integer.parseInt(args[1]);
-        } else {
-            rngSeed = System.nanoTime();
-        }
-        final Random rng = new Random(rngSeed);
+    @Override
+    protected ArrayList<Command> getCommandQueue() {
 
-        Game game = new Game();
-        // At this point "game" variable is populated with initial map data.
-        // This is a good place to do computationally expensive start-up pre-processing.
-        // As soon as you call "ready" function below, the 2 second per turn timer will start.
-        game.ready("MyJavaBot");
+        final ArrayList<Command> commandQueue = new ArrayList<>();
 
-        // Create our starting ships
-        // TODO: do we need this?
-//        ships = game.me.ships.entrySet().stream().map(entry -> new SimpleShip(entry.getValue())).collect(Collectors.toList());
-
-        Log.log("Successfully created bot! My Player ID is " + game.myId + ". Bot rng seed is " + rngSeed + ".");
-
-        for (;;) {
-            game.updateFrame();
-            final Player me = game.me;
-            final GameMap gameMap = game.gameMap;
-
-            updateShips(me.ships.values());
-
-            final ArrayList<Command> commandQueue = new ArrayList<>();
-
-            for (final AbstractShip ship : ships.values()) {
-                if (gameMap.at(ship.getPosition()).halite < Constants.MAX_HALITE / 10 || ship.isFull()) {
-                    final Direction randomDirection = Direction.ALL_CARDINALS.get(rng.nextInt(4));
-                    commandQueue.add(ship.move(randomDirection));
-                } else {
-                    commandQueue.add(ship.stayStill());
-                }
+        for (final AbstractShip ship : ships.values()) {
+            if (game.gameMap.at(ship.getPosition()).halite < Constants.MAX_HALITE / 10 || ship.isFull()) {
+                final Direction randomDirection = Direction.ALL_CARDINALS.get(randomGenerator.nextInt(4));
+                commandQueue.add(ship.move(randomDirection));
+            } else {
+                commandQueue.add(ship.stayStill());
             }
-
-            if (
-                    game.turnNumber <= 200 &&
-                            me.halite >= Constants.SHIP_COST &&
-                            !gameMap.at(me.shipyard).isOccupied())
-            {
-                commandQueue.add(me.shipyard.spawn());
-            }
-
-            game.endTurn(commandQueue);
         }
+
+        if (
+                game.turnNumber <= 200 &&
+                        game.me.halite >= Constants.SHIP_COST &&
+                        !game.gameMap.at(game.me.shipyard).isOccupied())
+        {
+            commandQueue.add(game.me.shipyard.spawn());
+        }
+
+        return commandQueue;
     }
 
+    @Override
+    protected void onTurnStart() {
+
+    }
+
+    @Override
+    protected void onTurnEnd() {
+
+    }
+
+    @Override
+    protected void onGameStart() {
+
+    }
+
+    @Override
+    protected void onGameEnd() {
+
+    }
+
+    @Override
+    protected AbstractShip createShip(Ship initialStatus) {
+        return new SimpleShip(initialStatus);
+    }
 }

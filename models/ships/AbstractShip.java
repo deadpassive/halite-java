@@ -21,7 +21,7 @@ public class AbstractShip {
 
     private Ship shipStatus;
 
-    public AbstractShip(Ship initialStatus) {
+    AbstractShip(Ship initialStatus) {
         this.shipStatus = initialStatus;
     }
 
@@ -52,4 +52,6 @@ public class AbstractShip {
     public Command stayStill() {
         return shipStatus.stayStill();
     }
+
+
 }

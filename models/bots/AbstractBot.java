@@ -12,5 +12,33 @@
  */
 package models.bots;
 
-public class AbstractBot {
+import hlt.Ship;
+import models.ships.AbstractShip;
+import models.ships.SimpleShip;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+public abstract class AbstractBot {
+
+    protected Map<Integer, AbstractShip> ships = new HashMap<>();
+
+    protected void updateShips(Collection<Ship> shipStatuses) {
+        Map<Integer, AbstractShip> newShips = new HashMap<>();
+
+        for (Ship shipStatus : shipStatuses) {
+            AbstractShip ship = ships.get(shipStatus.id.id);
+            if (ship != null) {
+                ships.get(shipStatus.id.id).update(shipStatus);
+            } else {
+                ship = new SimpleShip(shipStatus);
+            }
+            newShips.put(ship.getId(), ship);
+        }
+
+        ships = newShips;
+    }
+
 }

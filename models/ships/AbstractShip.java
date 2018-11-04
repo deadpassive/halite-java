@@ -12,5 +12,44 @@
  */
 package models.ships;
 
+import hlt.Command;
+import hlt.Direction;
+import hlt.Position;
+import hlt.Ship;
+
 public class AbstractShip {
+
+    private Ship shipStatus;
+
+    public AbstractShip(Ship initialStatus) {
+        this.shipStatus = initialStatus;
+    }
+
+    public final Position getPosition() {
+        return shipStatus.position;
+    }
+
+    public final int getHalite() {
+        return shipStatus.halite;
+    }
+
+    public final void update(Ship shipStatus) {
+        this.shipStatus = shipStatus;
+    }
+
+    public final int getId() {
+        return shipStatus.id.id;
+    }
+
+    public final boolean isFull() {
+        return shipStatus.isFull();
+    }
+
+    public Command move(Direction direction) {
+        return shipStatus.move(direction);
+    }
+
+    public Command stayStill() {
+        return shipStatus.stayStill();
+    }
 }

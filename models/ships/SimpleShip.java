@@ -12,5 +12,10 @@
  */
 package models.ships;
 
-public class SimpleShip {
+import hlt.Ship;
+
+public class SimpleShip extends AbstractShip {
+    public SimpleShip(Ship initialStatus) {
+        super(initialStatus);
+    }
 }

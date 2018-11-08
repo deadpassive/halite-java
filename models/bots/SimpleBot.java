@@ -16,13 +16,12 @@ import hlt.Command;
 import hlt.Constants;
 import hlt.Direction;
 import hlt.Ship;
-import models.ships.AbstractShip;
 import models.ships.SimpleShip;
 
 import java.util.ArrayList;
 
 
-public class SimpleBot extends AbstractBot {
+public class SimpleBot extends AbstractBot<SimpleShip> {
 
     private static SimpleBot INSTANCE;
 
@@ -44,7 +43,7 @@ public class SimpleBot extends AbstractBot {
 
         final ArrayList<Command> commandQueue = new ArrayList<>();
 
-        for (final AbstractShip ship : ships.values()) {
+        for (final SimpleShip ship : ships.values()) {
             if (game.gameMap.at(ship.getPosition()).halite < Constants.MAX_HALITE / 10 || ship.isFull()) {
                 final Direction randomDirection = Direction.ALL_CARDINALS.get(randomGenerator.nextInt(4));
                 commandQueue.add(ship.move(randomDirection));
@@ -85,7 +84,7 @@ public class SimpleBot extends AbstractBot {
     }
 
     @Override
-    protected AbstractShip createShip(Ship initialStatus) {
+    protected SimpleShip createShip(Ship initialStatus) {
         return new SimpleShip(initialStatus);
     }
 }

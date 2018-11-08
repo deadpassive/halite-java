@@ -17,17 +17,17 @@ import models.ships.AbstractShip;
 
 import java.util.*;
 
-public abstract class AbstractBot {
+public abstract class AbstractBot<ShipType extends AbstractShip> {
 
-    Map<Integer, AbstractShip> ships = new HashMap<>();
+    Map<Integer, ShipType> ships = new HashMap<>();
     Game game;
     Random randomGenerator;
 
     private void updateShips(Collection<Ship> shipStatuses) {
-        Map<Integer, AbstractShip> newShips = new HashMap<>();
+        Map<Integer, ShipType> newShips = new HashMap<>();
 
         for (Ship shipStatus : shipStatuses) {
-            AbstractShip ship = ships.get(shipStatus.id.id);
+            ShipType ship = ships.get(shipStatus.id.id);
             if (ship != null) {
                 ships.get(shipStatus.id.id).update(shipStatus);
             } else {
@@ -85,5 +85,5 @@ public abstract class AbstractBot {
 
     protected abstract ArrayList<Command> getCommandQueue();
 
-    protected abstract AbstractShip createShip(Ship initialStatus);
+    protected abstract ShipType createShip(Ship initialStatus);
 }

@@ -19,7 +19,7 @@ import hlt.Ship;
 
 public class AbstractShip {
 
-    private Ship shipStatus;
+    protected Ship shipStatus;
 
     AbstractShip(Ship initialStatus) {
         this.shipStatus = initialStatus;

@@ -2,9 +2,6 @@ package lib.models.ships;
 
 import lib.hlt.Direction;
 import lib.hlt.Ship;
-import lib.implementations.genetic.DirectionScore;
-import lib.implementations.genetic.ShipGenes;
-import lib.implementations.genetic.ShipMode;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -2,9 +2,9 @@ package lib.models.bots;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lib.hlt.*;
-import lib.implementations.genetic.DirectionScore;
-import lib.implementations.genetic.ShipGenes;
-import lib.implementations.genetic.ShipMode;
+import lib.models.ships.DirectionScore;
+import lib.models.ships.ShipGenes;
+import lib.models.ships.ShipMode;
 import lib.models.ships.GeneticShip;
 import org.apache.commons.io.IOUtils;
 

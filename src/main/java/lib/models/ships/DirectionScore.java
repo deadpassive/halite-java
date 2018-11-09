@@ -1,4 +1,4 @@
-package lib.implementations.genetic;
+package lib.models.ships;
 
 import lib.hlt.Direction;
 import lib.hlt.Position;

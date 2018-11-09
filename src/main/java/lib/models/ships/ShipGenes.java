@@ -1,4 +1,4 @@
-package lib.implementations.genetic;
+package lib.models.ships;
 
 public class ShipGenes {
     private int players;

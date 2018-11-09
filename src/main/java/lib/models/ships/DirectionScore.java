@@ -1,7 +1,6 @@
 package lib.models.ships;
 
 import lib.hlt.Direction;
-import lib.hlt.Position;
 
 public class DirectionScore {
     private final Double score;

@@ -2,24 +2,25 @@ package lib.models.bots;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lib.hlt.*;
-import lib.models.ships.DirectionScore;
-import lib.models.ships.ShipGenes;
-import lib.models.ships.ShipMode;
-import lib.models.ships.GeneticShip;
+import lib.models.genes.BotGenes;
+import lib.models.genes.ShipGenes;
+import lib.models.ships.*;
+import lib.navigation.DirectionScore;
+import lib.navigation.NavigationUtils;
 import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
 import java.util.stream.Collectors;
 
 public class GeneticBot extends AbstractBot<GeneticShip> {
 
-    private final static String OPTIMAL_GENE_FILE_PATH = "optimal-ship-genes.json";
+    private final static String OPTIMAL_SHIP_GENEs_FILE_PATH = "optimal-ship-genes.json";
+    private final static String OPTIMAL_BOT_GENEs_FILE_PATH = "optimal-bot-genes.json";
 
     private ShipGenes shipGenes;
+    private BotGenes botGenes;
 
     private static GeneticBot INSTANCE;
 
@@ -38,65 +39,76 @@ public class GeneticBot extends AbstractBot<GeneticShip> {
 
     /**
      * Loads {@link ShipGenes} from json file.
-     * @throws IOException
+     * @throws IOException if there is a problem loading the ship genes
      */
     private void initialiseOptimalShipGenes() throws IOException {
         ObjectMapper mapper = new ObjectMapper();
-        InputStream genes = getClass().getClassLoader().getResourceAsStream(OPTIMAL_GENE_FILE_PATH);
+        InputStream genes = getClass().getClassLoader().getResourceAsStream(OPTIMAL_SHIP_GENEs_FILE_PATH);
         shipGenes = mapper.readValue(IOUtils.toString(genes, "utf8"), ShipGenes.class);
     }
 
+    /**
+     * Loads {@link ShipGenes} from json file.
+     * @throws IOException if there is a problem loading the ship genes
+     */
+    private void initialiseOptimalBotGenes() throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        InputStream genes = getClass().getClassLoader().getResourceAsStream(OPTIMAL_BOT_GENEs_FILE_PATH);
+        botGenes = mapper.readValue(IOUtils.toString(genes, "utf8"), BotGenes.class);
+    }
+
+    /**
+     * Update the {@link ShipMode}s
+     */
     private void setShipModes() {
         for (GeneticShip ship : this.ships.values()) {
-            if (ship.isFull()) {
-                // If the ship is full set the ships mode to depositing
-                ship.setShipMode(ShipMode.DEPOSITING);
-            } else if (ship.getShipGenes().getCollectThreshold() < game.gameMap.at(ship.getPosition()).halite) {
-                // If the ships current position has more halite than the ships collection threshold set the ships
-                // mode to gathering
+            // If the ship doesn't have enough halite to get off the cell without dying
+            if (!enoughHaliteToMove(ship)) {
+                // then set the ships mode to gathering so that it stays still
                 ship.setShipMode(ShipMode.GATHERING);
+                continue;
+            }
+
+            // If the ship isn't full yet
+            if (!ship.isFull()
+                    // and the amount of halite at the ships position meets the threshold gene
+                    && ship.getShipGenes().getGatherPositionHaliteAmount() < game.gameMap.at(ship.getPosition()).halite) {
+                // then set the ships mode to gathering
+                ship.setShipMode(ShipMode.GATHERING);
+                continue;
+            }
+
+            // If the ship has less than the return threshold
+            if (ship.getHalite() > ship.getShipGenes().getReturnHaliteAmount()) {
+                // then set the ships mode to returning
+                ship.setShipMode(ShipMode.RETURNING);
             } else {
-                // Otherwise set the ships mode to migrating
+                // otherwise set the ships mode to migrating
                 ship.setShipMode(ShipMode.MIGRATING);
             }
         }
+        Log.log(String.format("%03d ships GATHERING", ships.values().stream().filter(s -> s.getShipMode() == ShipMode.GATHERING).collect(Collectors.toList()).size()));
+        Log.log(String.format("%03d ships RETURNING", ships.values().stream().filter(s -> s.getShipMode() == ShipMode.RETURNING).collect(Collectors.toList()).size()));
+        Log.log(String.format("%03d ships MIGRATING", ships.values().stream().filter(s -> s.getShipMode() == ShipMode.MIGRATING).collect(Collectors.toList()).size()));
+
     }
 
+    /**
+     * Check that the ship has enough halite to move off the current cell that its on.
+     * @param ship The {@link AbstractShip} to check for
+     * @return true if the ship can move, false if not
+     */
+    private boolean enoughHaliteToMove(AbstractShip ship) {
+        return ship.getHalite() >= (game.gameMap.at(ship.getPosition()).halite * 0.1);
+    }
+
+    /**
+     * Refresh the list of {@link DirectionScore} on each ship considering new game state and new {@link ShipMode}s
+     */
     private void updateShipDirectionScores() {
         for (GeneticShip ship : ships.values()) {
-            ship.updateDirectionScores();
+            ship.updateDirectionScores(game);
         }
-    }
-    /**
-     * Creates a command for each ship based on the ships {@link DirectionScore}s and positions that are already
-     * occupied.
-     * @return List of {@link Command}s
-     */
-    private ArrayList<Command> resolveShipDirections() {
-        // TODO occupied positions should be a bot property?
-        List<Position> occupiedPositions = new ArrayList<>();
-
-        ArrayList<Command> commands = new ArrayList<>();
-        for (GeneticShip ship : ships.values()) {
-            List<DirectionScore> sortedDirectionScores = ship.getDirectionScores().stream()
-                    // Sort the move scores by their score so that we can try the best move first
-                    .sorted(Comparator.comparingDouble(DirectionScore::getScore).reversed())
-                    .collect(Collectors.toList());
-            Log.log(String.format("Sorted direction scores: %s", sortedDirectionScores));
-
-            for (DirectionScore directionScore : sortedDirectionScores) {
-                if (!occupiedPositions.contains(ship.getPosition().directionalOffset(directionScore.getDirection()))) {
-                    // If the ships position modified by the direction isnt already occupied
-                    // then add the command to move the ship in that direction
-                    commands.add(ship.move(directionScore.getDirection()));
-                    // add the resulting position to the list of occupied positions
-                    occupiedPositions.add(ship.getPosition().directionalOffset(directionScore.getDirection()));
-                    break;
-                }
-            }
-        }
-        return commands;
-
     }
 
     @Override
@@ -112,9 +124,19 @@ public class GeneticBot extends AbstractBot<GeneticShip> {
     @Override
     protected void onGameStart() {
         try {
-            // Load genes from json file in resource folder
+            // Load ship genes from json file in resource folder
             initialiseOptimalShipGenes();
+            Log.log(String.format("Ship genes: %s", shipGenes));
         } catch (IOException e){
+            Log.log("Failed to load ship genes");
+            e.printStackTrace();
+        }
+        try {
+            // Load bot genes from json file in resource folder
+            initialiseOptimalBotGenes();
+            Log.log(String.format("Bot genes: %s", botGenes));
+        } catch (IOException e){
+            Log.log("Failed to load bot genes");
             e.printStackTrace();
         }
     }
@@ -131,13 +153,14 @@ public class GeneticBot extends AbstractBot<GeneticShip> {
         // For each ship create a list of direction - score pairs
         updateShipDirectionScores();
         // Convert the ship direction scores into the best possible set of commands
-        ArrayList<Command> commands = resolveShipDirections();
+        ArrayList<Command> commands = NavigationUtils.resolveShipDirections(ships.values());
 
+        // If the bot has enough halite to buy a ship
         if (game.me.halite >= Constants.SHIP_COST &&
-                // Check bot has enough halite
-                ships.size() < 2 &&
+                // and the create ship threshold is less than the proportion of turns left
+                ((double) game.turnNumber / (double) Constants.MAX_TURNS) < botGenes.getCreateShipThreshold() &&
                 // Limit the number of ships
-                // TODO dont check isOccupied, check against our list of occupied positions thats generated by resolveDirectionScores()
+                // TODO don't check isOccupied, check against our list of occupied positions thats generated by resolveDirectionScores()
                 !game.gameMap.at(game.me.shipyard).isOccupied())
                 // Check that the shipyard is empty
         {

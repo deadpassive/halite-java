@@ -1,12 +1,12 @@
-package lib.models.ships;
+package lib.navigation;
 
 import lib.hlt.Direction;
 
 public class DirectionScore {
-    private final Double score;
+    private final int score;
     private final Direction direction;
 
-    public DirectionScore(Double score, Direction direction) {
+    public DirectionScore(int score, Direction direction) {
         this.score = score;
         this.direction = direction;
     }
@@ -19,7 +19,7 @@ public class DirectionScore {
                 '}';
     }
 
-    public Double getScore() {
+    public int getScore() {
         return score;
     }
 

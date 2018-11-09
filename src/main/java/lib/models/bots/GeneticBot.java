@@ -112,6 +112,7 @@ public class GeneticBot extends AbstractBot<GeneticShip> {
     @Override
     protected void onGameStart() {
         try {
+            // Load genes from json file in resource folder
             initialiseOptimalShipGenes();
         } catch (IOException e){
             e.printStackTrace();
@@ -125,9 +126,11 @@ public class GeneticBot extends AbstractBot<GeneticShip> {
 
     @Override
     protected ArrayList<Command> getCommandQueue() {
+        // For each ship check some conditions and set the mode that the ship should run in
         setShipModes();
+        // For each ship create a list of direction - score pairs
         updateShipDirectionScores();
-
+        // Convert the ship direction scores into the best possible set of commands
         ArrayList<Command> commands = resolveShipDirections();
 
         if (game.me.halite >= Constants.SHIP_COST &&

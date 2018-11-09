@@ -1,4 +1,4 @@
-package hlt;
+package lib.hlt;
 
 import java.util.ArrayList;
 import java.util.Collection;

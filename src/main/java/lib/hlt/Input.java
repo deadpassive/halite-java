@@ -1,4 +1,4 @@
-package hlt;
+package lib.hlt;
 
 public class Input {
     private final String[] input;

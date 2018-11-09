@@ -1,4 +1,4 @@
-package hlt;
+package lib.hlt;
 
 import java.io.FileWriter;
 import java.io.IOException;

@@ -10,12 +10,12 @@
  * of the licence agreement made with Dotted Eyes Ltd.
  *
  */
-package models.ships;
+package lib.models.ships;
 
-import hlt.Command;
-import hlt.Direction;
-import hlt.Position;
-import hlt.Ship;
+import lib.hlt.Command;
+import lib.hlt.Direction;
+import lib.hlt.Position;
+import lib.hlt.Ship;
 
 public class AbstractShip {
 

@@ -10,23 +10,24 @@
  * of the licence agreement made with Dotted Eyes Ltd.
  *
  */
-package models.bots;
+package lib.models.bots;
 
-import hlt.*;
-import models.ships.AbstractShip;
+import lib.hlt.*;
+import lib.models.ships.AbstractShip;
 
 import java.util.*;
 
-public abstract class AbstractBot {
+public abstract class AbstractBot<ShipType extends AbstractShip> {
 
-    Map<Integer, AbstractShip> ships = new HashMap<>();
+    Map<Integer, ShipType> ships = new HashMap<>();
     Game game;
+    Random randomGenerator;
 
     private void updateShips(Collection<Ship> shipStatuses) {
-        Map<Integer, AbstractShip> newShips = new HashMap<>();
+        Map<Integer, ShipType> newShips = new HashMap<>();
 
         for (Ship shipStatus : shipStatuses) {
-            AbstractShip ship = ships.get(shipStatus.id.id);
+            ShipType ship = ships.get(shipStatus.id.id);
             if (ship != null) {
                 ships.get(shipStatus.id.id).update(shipStatus);
             } else {
@@ -39,6 +40,14 @@ public abstract class AbstractBot {
     }
 
     public void run(final String[] args) {
+        final long rngSeed;
+        if (args.length > 1) {
+            rngSeed = Integer.parseInt(args[1]);
+        } else {
+            rngSeed = System.nanoTime();
+        }
+        randomGenerator = new Random(rngSeed);
+
         this.game = new Game();
 
         onGameStart();
@@ -46,9 +55,9 @@ public abstract class AbstractBot {
         // At this point "game" variable is populated with initial map data.
         // This is a good place to do computationally expensive start-up pre-processing.
         // As soon as you call "ready" function below, the 2 second per turn timer will start.
-        game.ready("MyJavaBot");
+        game.ready(this.getClass().getName());
 
-        Log.log("Successfully created bot! My Player ID is " + game.myId);
+        Log.log("Successfully created bot! My Player ID is " + game.myId + ". Bot rng seed is " + rngSeed + ".");
 
         do {
             game.updateFrame();
@@ -76,5 +85,5 @@ public abstract class AbstractBot {
 
     protected abstract ArrayList<Command> getCommandQueue();
 
-    protected abstract AbstractShip createShip(Ship initialStatus);
+    protected abstract ShipType createShip(Ship initialStatus);
 }

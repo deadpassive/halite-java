@@ -1,4 +1,4 @@
-package hlt;
+package lib.hlt;
 
 public class EntityId {
     public static final EntityId NONE = new EntityId(-1);

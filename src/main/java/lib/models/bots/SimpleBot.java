@@ -10,19 +10,19 @@
  * of the licence agreement made with Dotted Eyes Ltd.
  *
  */
-package models.bots;
+package lib.models.bots;
 
-import hlt.Command;
-import hlt.Constants;
-import hlt.Direction;
-import hlt.Ship;
-import models.ships.AbstractShip;
-import models.ships.SimpleShip;
+import lib.hlt.Command;
+import lib.hlt.Constants;
+import lib.hlt.Direction;
+import lib.hlt.Ship;
+import lib.models.ships.AbstractShip;
+import lib.models.ships.SimpleShip;
 
 import java.util.ArrayList;
 import java.util.Random;
 
-public class SimpleBot extends AbstractBot {
+public class SimpleBot extends AbstractBot<SimpleShip> {
 
     private static SimpleBot INSTANCE;
 
@@ -87,7 +87,7 @@ public class SimpleBot extends AbstractBot {
     }
 
     @Override
-    protected AbstractShip createShip(Ship initialStatus) {
+    protected SimpleShip createShip(Ship initialStatus) {
         return new SimpleShip(initialStatus);
     }
 }

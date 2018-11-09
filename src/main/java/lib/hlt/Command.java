@@ -1,4 +1,4 @@
-package hlt;
+package lib.hlt;
 
 public class Command {
     public final String command;

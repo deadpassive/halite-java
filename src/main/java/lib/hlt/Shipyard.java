@@ -1,4 +1,4 @@
-package hlt;
+package lib.hlt;
 
 public class Shipyard extends Entity {
     public Shipyard(final PlayerId owner, final Position position) {

@@ -10,9 +10,9 @@
  * of the licence agreement made with Dotted Eyes Ltd.
  *
  */
-package models.ships;
+package lib.models.ships;
 
-import hlt.Ship;
+import lib.hlt.Ship;
 
 public class SimpleShip extends AbstractShip {
     public SimpleShip(Ship initialStatus) {

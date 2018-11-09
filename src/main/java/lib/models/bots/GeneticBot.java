@@ -46,6 +46,27 @@ public class GeneticBot extends AbstractBot<GeneticShip> {
         shipGenes = mapper.readValue(IOUtils.toString(genes, "utf8"), ShipGenes.class);
     }
 
+    private void setShipModes() {
+        for (GeneticShip ship : this.ships.values()) {
+            if (ship.isFull()) {
+                // If the ship is full set the ships mode to depositing
+                ship.setShipMode(ShipMode.DEPOSITING);
+            } else if (ship.getShipGenes().getCollectThreshold() < game.gameMap.at(ship.getPosition()).halite) {
+                // If the ships current position has more halite than the ships collection threshold set the ships
+                // mode to gathering
+                ship.setShipMode(ShipMode.GATHERING);
+            } else {
+                // Otherwise set the ships mode to migrating
+                ship.setShipMode(ShipMode.MIGRATING);
+            }
+        }
+    }
+
+    private void updateShipDirectionScores() {
+        for (GeneticShip ship : ships.values()) {
+            ship.updateDirectionScores();
+        }
+    }
     /**
      * Creates a command for each ship based on the ships {@link DirectionScore}s and positions that are already
      * occupied.
@@ -104,21 +125,8 @@ public class GeneticBot extends AbstractBot<GeneticShip> {
 
     @Override
     protected ArrayList<Command> getCommandQueue() {
-        for (GeneticShip ship : this.ships.values()) {
-
-            if (ship.isFull()) {
-                // If the ship is full set the ships mode to depositing
-                ship.setShipMode(ShipMode.DEPOSITING);
-            } else if (ship.getShipGenes().getCollectThreshold() < game.gameMap.at(ship.getPosition()).halite) {
-                // If the ships current position has more halite than the ships collection threshold set the ships
-                // mode to gathering
-                ship.setShipMode(ShipMode.GATHERING);
-            } else {
-                // Otherwise set the ships mode to migrating
-                ship.setShipMode(ShipMode.MIGRATING);
-            }
-            ship.updateDirectionScores();
-        }
+        setShipModes();
+        updateShipDirectionScores();
 
         ArrayList<Command> commands = resolveShipDirections();
 

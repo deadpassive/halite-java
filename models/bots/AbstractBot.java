@@ -21,7 +21,6 @@ public abstract class AbstractBot<ShipType extends AbstractShip> {
 
     Map<Integer, ShipType> ships = new HashMap<>();
     Game game;
-    Random randomGenerator;
 
     private void updateShips(Collection<Ship> shipStatuses) {
         Map<Integer, ShipType> newShips = new HashMap<>();
@@ -40,14 +39,6 @@ public abstract class AbstractBot<ShipType extends AbstractShip> {
     }
 
     public void run(final String[] args) {
-        final long rngSeed;
-        if (args.length > 1) {
-            rngSeed = Integer.parseInt(args[1]);
-        } else {
-            rngSeed = System.nanoTime();
-        }
-        randomGenerator = new Random(rngSeed);
-
         this.game = new Game();
 
         onGameStart();
@@ -57,7 +48,7 @@ public abstract class AbstractBot<ShipType extends AbstractShip> {
         // As soon as you call "ready" function below, the 2 second per turn timer will start.
         game.ready(this.getClass().getName());
 
-        Log.log("Successfully created bot! My Player ID is " + game.myId + ". Bot rng seed is " + rngSeed + ".");
+        Log.log("Successfully created bot! My Player ID is " + game.myId);
 
         do {
             game.updateFrame();

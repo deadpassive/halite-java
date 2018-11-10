@@ -70,16 +70,16 @@ public class JonsShip extends AbstractShip {
         }
 
 
-        if (missionType.equals("COLLECTION_RUN")) {
-            if (missionPhase.equals("OUTWARD")) {
-                // Move towards the target, collecting on the way
-                if(this.getPosition().equals(target)) {
-                    // We have reached our destination - collect until full or nothing left then return
-                } else {
-                    // We are on our way out
-                }
-            }
-        }
+//        if (missionType.equals("COLLECTION_RUN")) {
+//            if (missionPhase.equals("OUTWARD")) {
+//                // Move towards the target, collecting on the way
+//                if(this.getPosition().equals(target)) {
+//                    // We have reached our destination - collect until full or nothing left then return
+//                } else {
+//                    // We are on our way out
+//                }
+//            }
+//        }
     }
 
     private void initMission(Game game) {

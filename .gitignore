@@ -13,3 +13,4 @@ replays/
 .idea/
 halite.exe
 halite
+target/

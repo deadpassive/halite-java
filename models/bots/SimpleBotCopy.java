@@ -20,28 +20,21 @@ import models.ships.AbstractShip;
 import models.ships.SimpleShip;
 
 import java.util.ArrayList;
-import java.util.Random;
 
 
-public class SimpleBot extends AbstractBot {
+public class SimpleBotCopy extends AbstractBot {
 
-    private static SimpleBot INSTANCE;
+    private static SimpleBotCopy INSTANCE;
 
     public static void main(String[] args) {
-        SimpleBot.getInstance().run(args);
+        SimpleBotCopy.getInstance().run(args);
     }
 
-    private Random randomGenerator;
+    private SimpleBotCopy() {}
 
-    private SimpleBot() {
-        final long rngSeed;
-        rngSeed = System.nanoTime();
-        randomGenerator = new Random(rngSeed);
-    }
-
-    public static SimpleBot getInstance() {
+    public static SimpleBotCopy getInstance() {
         if (INSTANCE == null) {
-            INSTANCE = new SimpleBot();
+            INSTANCE = new SimpleBotCopy();
         }
         return INSTANCE;
     }

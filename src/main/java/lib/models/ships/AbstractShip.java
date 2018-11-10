@@ -53,5 +53,7 @@ public class AbstractShip {
         return shipStatus.stayStill();
     }
 
-
+    public Ship getShipStatus() {
+        return shipStatus;
+    }
 }

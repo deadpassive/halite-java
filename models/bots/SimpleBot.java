@@ -20,6 +20,7 @@ import models.ships.AbstractShip;
 import models.ships.SimpleShip;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 
 public class SimpleBot extends AbstractBot {
@@ -30,7 +31,13 @@ public class SimpleBot extends AbstractBot {
         SimpleBot.getInstance().run(args);
     }
 
-    private SimpleBot() {}
+    private Random randomGenerator;
+
+    private SimpleBot() {
+        final long rngSeed;
+        rngSeed = System.nanoTime();
+        randomGenerator = new Random(rngSeed);
+    }
 
     public static SimpleBot getInstance() {
         if (INSTANCE == null) {

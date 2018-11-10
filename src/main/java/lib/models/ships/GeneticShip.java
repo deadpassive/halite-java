@@ -3,12 +3,13 @@ package lib.models.ships;
 import lib.hlt.*;
 import lib.models.genes.ShipGenes;
 import lib.navigation.DirectionScore;
+import lib.navigation.ShipNavigationInterface;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class GeneticShip extends AbstractShip {
+public class GeneticShip extends AbstractShip implements ShipNavigationInterface {
 
     private final ShipGenes shipGenes;
 
@@ -24,6 +25,17 @@ public class GeneticShip extends AbstractShip {
     public void updateDirectionScores(Game game) {
         directionScores = new ArrayList<>();
         switch (shipMode) {
+            case FORCED_GATHERING:
+                directionScores.addAll(Direction.ALL_CARDINALS.stream()
+                        .map(d -> new DirectionScore(
+                                0,
+                                d)
+                        ).collect(Collectors.toList())
+                );
+                // Whilst forced gathering its essential that the ship stays still else it dies so max it out
+                directionScores.add(new DirectionScore(2000, Direction.STILL));
+                break;
+
             case GATHERING:
                 directionScores.addAll(Direction.ALL_CARDINALS.stream()
                         .map(d -> new DirectionScore(
@@ -71,5 +83,14 @@ public class GeneticShip extends AbstractShip {
 
     public ShipGenes getShipGenes() {
         return shipGenes;
+    }
+
+    @Override
+    public String toString() {
+        return "GeneticShip{" +
+                "shipGenes=" + shipGenes +
+                ", shipMode=" + shipMode +
+                ", directionScores=" + directionScores +
+                '}';
     }
 }

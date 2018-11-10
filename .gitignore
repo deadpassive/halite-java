@@ -6,9 +6,10 @@ Makefile
 *.pyc
 *.pyo
 __pycache__/
-*.class
+*.classgit
 *.ipr
 *.iws
 replays/
 .idea/
 halite.exe
+target/

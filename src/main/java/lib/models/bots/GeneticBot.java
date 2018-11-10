@@ -161,8 +161,6 @@ public class GeneticBot extends AbstractBot<GeneticShip> {
         // Convert the ship direction scores into the best possible set of commands
         commands.addAll(navigationManager.resolveShipDirections(ships.values(), game.gameMap));
 
-        Log.log(String.format("%s", navigationManager.getOccupiedPositions()));
-        Log.log(String.format("%s",!navigationManager.getOccupiedPositions().contains(game.gameMap.at(game.me.shipyard).position)));
         // If the bot has enough halite to buy a ship
         if (game.me.halite >= Constants.SHIP_COST &&
                 // and the create ship threshold is less than the proportion of turns left

@@ -3,6 +3,7 @@ package lib.models.ships;
 import lib.hlt.*;
 import lib.models.genes.ShipGenes;
 import lib.navigation.DirectionScore;
+import lib.navigation.NavigationUtils;
 import lib.navigation.ShipNavigationInterface;
 
 import java.util.ArrayList;
@@ -49,9 +50,15 @@ public class GeneticShip extends AbstractShip implements ShipNavigationInterface
 
             case MIGRATING:
                 directionScores.addAll(Direction.ALL_CARDINALS.stream()
-                        .map(d -> new DirectionScore(
-                                game.gameMap.at(this.getPosition().directionalOffset(d)).halite,
-                                d)
+                        .map(d -> {
+                            List<Position> positionsInRay = NavigationUtils.getMapCellsInRay(this.getPosition(), d, shipGenes.getRayLength());
+
+                            // At most 1000, sometimes this can exceed 1000 without the min because lots of halite can drop in the same cell when ships crash
+                            return new DirectionScore(
+                                    Math.min(NavigationUtils.totalHaliteAtPositions(game.gameMap, positionsInRay) / positionsInRay.size(), 1000)
+                                    , d
+                            );
+                        }
                         ).collect(Collectors.toList())
                 );
                 // Whilst migrating staying still is not desirable

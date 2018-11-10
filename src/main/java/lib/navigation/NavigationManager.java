@@ -19,6 +19,8 @@ public class NavigationManager {
     /**
      * Creates a command for each ship based on the ships {@link DirectionScore}s and positions that are already
      * occupied.
+     *
+     * Does ships sometimes crash into each other when totally surrounded.
      * @return List of {@link Command}s
      */
     public ArrayList<Command> resolveShipDirections(Collection<? extends ShipNavigationInterface> ships, GameMap gameMap) {

@@ -2,6 +2,8 @@ package lib.models.bots;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lib.hlt.*;
+import lib.investment.Investment;
+import lib.investment.InvestmentManager;
 import lib.models.genes.BotGenes;
 import lib.models.genes.ShipGenes;
 import lib.models.modes.BotMode;
@@ -11,10 +13,10 @@ import lib.navigation.DirectionScore;
 import lib.navigation.NavigationManager;
 import org.apache.commons.io.IOUtils;
 
+import javax.print.DocFlavor;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class GeneticBot extends AbstractBot<GeneticShip> {
@@ -25,12 +27,16 @@ public class GeneticBot extends AbstractBot<GeneticShip> {
     private ShipGenes shipGenes;
     private BotGenes botGenes;
 
-    private BotMode botMode = BotMode.BUILDING_SHIPS;
+    private BotMode botMode = BotMode.INVESTING_IN_SHIPS;
 
     private NavigationManager navigationManager = new NavigationManager();
+    private InvestmentManager investmentManager;
 
     private int initialHalite;
     private int remainingHalite;
+    private double avgDistanceToHalite;
+
+    private GeneticShip dropoffCandidate;
 
     private static GeneticBot INSTANCE;
 
@@ -69,17 +75,27 @@ public class GeneticBot extends AbstractBot<GeneticShip> {
 
     private void setBotMode() {
         // If we are towards the end of the game then set mode to FORCED_RETURNING which will modify the navigation manager
-        if (((double)(Constants.MAX_TURNS - game.turnNumber) / Constants.MAX_TURNS) < botGenes.getForcedReturnTurnRemainingThreshold()) {
+        if (((double) (Constants.MAX_TURNS - game.turnNumber) / Constants.MAX_TURNS) < botGenes.getForcedReturnTurnRemainingThreshold()) {
+
             botMode = BotMode.FORCED_RETURNING;
 
-            // If the bot has enough halite to buy a ship
-        } else if (game.me.halite >= Constants.SHIP_COST &&
-                    // and the create ship threshold is less than the proportion of turns left
-                    (haliteRemainingBelowThreshold(botGenes.getCreateShipHaliteRemainingThreshold()) && turnsRemainingBelowThreshold(botGenes.getCreateShipTurnRemainingThreshold())) &&
-                    // and the shipyard doesnt wont have a ship on it
-                    !navigationManager.getOccupiedPositions().contains(game.gameMap.at(game.me.shipyard).position)) {
-            botMode = BotMode.BUILDING_SHIPS;
+            // If the create ship threshold is less than the proportion of halite left
+        } else if (haliteRemainingBelowThreshold(botGenes.getCreateShipHaliteRemainingThreshold()) &&
+                // and the threshold is less than the proportion of turns left
+                turnsRemainingBelowThreshold(botGenes.getCreateShipTurnRemainingThreshold()) &&
+                // and the threshold of building a drop off is not met
+                avgDistanceToHalite < (botGenes.getCreateDropoffAverageDistanceToHalite())) {
+
+            botMode = BotMode.INVESTING_IN_SHIPS;
+
+            // If the threshold for building a drop off is met
+        } else if (avgDistanceToHalite > (botGenes.getCreateDropoffAverageDistanceToHalite())) {
+
+            botMode = BotMode.INVESTING_IN_DROPOFFS;
+
+            // Otherwise stockpile halite
         } else {
+
             botMode = BotMode.STOCKPILING;
         }
         Log.log(String.format("Bot mode: %s", botMode));
@@ -146,6 +162,35 @@ public class GeneticBot extends AbstractBot<GeneticShip> {
         }
     }
 
+    private void updateManagers() {
+
+        switch (botMode){
+            case INVESTING_IN_SHIPS:
+                investmentManager.setNextInvestment(Investment.SHIP);
+                navigationManager.clearIgnoredPositions();
+                break;
+
+            case INVESTING_IN_DROPOFFS:
+                dropoffCandidate = ships.values().stream().max(Comparator.comparing(GeneticShip::getDistanceFromDeposit)).get();
+                investmentManager.setDropoffCandidate(dropoffCandidate);
+                investmentManager.setNextInvestment(Investment.DROPOFF);
+                navigationManager.clearIgnoredPositions();
+                break;
+
+            case STOCKPILING:
+                investmentManager.setNextInvestment(Investment.NONE);
+                navigationManager.clearIgnoredPositions();
+                break;
+
+            case FORCED_RETURNING:
+                investmentManager.setNextInvestment(Investment.NONE);
+                List<Position> depositPositions = game.me.dropoffs.values().stream().map(dropoff -> dropoff.position).collect(Collectors.toList());
+                depositPositions.add(game.me.shipyard.position);
+                navigationManager.addAllIgnoredPosition(depositPositions);
+                break;
+        }
+    }
+
     private int haliteOnMap(GameMap gameMap) {
         Log.log("Calculating total halite on the map");
         int halite = 0;
@@ -155,6 +200,18 @@ public class GeneticBot extends AbstractBot<GeneticShip> {
             }
         }
         return halite;
+    }
+
+    private double calculateAverageDistanceToHalite() {
+        OptionalDouble distance = ships.values().stream()
+                .filter(s -> s.getShipMode().equals(ShipMode.GATHERING))
+                .mapToInt(GeneticShip::getDistanceFromDeposit)
+                .average();
+        if (distance.isPresent()) {
+            return distance.getAsDouble();
+        } else {
+            return 0.0d;
+        }
     }
 
     private boolean haliteRemainingBelowThreshold(double threshold) {
@@ -175,7 +232,15 @@ public class GeneticBot extends AbstractBot<GeneticShip> {
     @Override
     protected void onTurnStart() {
         navigationManager.onTurnStart(game);
+        investmentManager.setDropOffCommandIssued(false);
+
         remainingHalite = haliteOnMap(game.gameMap);
+
+        // Update each ships distance from its closest deposit
+        for (GeneticShip ship : ships.values()) {
+            ship.updateDistanceFromDeposit(game);
+        }
+        avgDistanceToHalite = calculateAverageDistanceToHalite();
         Log.log(String.format("Remaining halite: %s", remainingHalite));
     }
 
@@ -202,6 +267,8 @@ public class GeneticBot extends AbstractBot<GeneticShip> {
             Log.log("Failed to load bot genes");
             e.printStackTrace();
         }
+        investmentManager = new InvestmentManager(navigationManager);
+
         initialHalite = haliteOnMap(game.gameMap);
         Log.log(String.format("Initial halite: %s", initialHalite));
         remainingHalite = initialHalite;
@@ -219,27 +286,24 @@ public class GeneticBot extends AbstractBot<GeneticShip> {
 
         // For each ship check some conditions and set the mode that the ship should run in
         setShipModes();
-        // For each ship create a list of direction - score pairs
+        // For each ship create a list of direction -> score pairs
         updateShipDirectionScores();
 
+        // Check state of the game and update the bots mode accordingly
         setBotMode();
-
-        // If we are are forcing return then set allow the navigation manager to crash ships onto dropoffs and shipyards
-        if (botMode.equals(BotMode.FORCED_RETURNING)) {
-            List<Position> depositPositions = game.me.dropoffs.values().stream().map(dropoff -> dropoff.position).collect(Collectors.toList());
-            depositPositions.add(game.me.shipyard.position);
-            navigationManager.addAllIgnoredPosition(depositPositions);
-        }
+        // Use the bots mode to update the managers (navigation / investment)
+        updateManagers();
 
         // Convert the ship direction scores into the best possible set of commands
         commands.addAll(navigationManager.resolveShipDirections(ships.values(), game.gameMap));
 
-        // If the bot has enough halite to buy a ship
-        if (botMode.equals(BotMode.BUILDING_SHIPS)) {
-            // tell this shipyard to spawn
-            commands.add(game.me.shipyard.spawn());
-            // Aller the navigation manager that we are spawning a ship
-            navigationManager.markOccupied(game.me.shipyard.position);
+        // Get a command from the investment manager (create a ship / dropoff)
+        commands.addAll(investmentManager.getCommand(game));
+        // If we have issued a makeDropoff command then we need to make sure that the ship receiving that command isn't
+        // trying to move as well
+        if (investmentManager.isDropOffCommandIssued()) {
+            // When I remove this move command sometimes it results in a ship crashing into the new dropoff... sigh
+            commands = cleanseMoveCommand(commands, Integer.toString(dropoffCandidate.getId()));
         }
 
         return commands;
@@ -248,5 +312,14 @@ public class GeneticBot extends AbstractBot<GeneticShip> {
     @Override
     protected GeneticShip createShip(Ship initialStatus) {
         return new GeneticShip(initialStatus, shipGenes);
+    }
+
+    public ArrayList<Command> cleanseMoveCommand(ArrayList<Command> commands, String id) {
+        Log.log(String.format("Attempting to remove move command for %s", id));
+        Log.log(String.format("commands %s", commands));
+        Log.log(String.format("filtered commands %s", commands.stream().filter(c -> c.command.contains("m " + id)).collect(Collectors.toList())));
+        Log.log(String.format("commands mapped to string %s", commands.stream().map(c -> c.command).collect(Collectors.toList())));
+
+        return (ArrayList<Command>) commands.stream().filter(c -> !c.command.contains("m " + id)).collect(Collectors.toList());
     }
 }

@@ -53,5 +53,7 @@ public class AbstractShip {
         return shipStatus.stayStill();
     }
 
-
+    public Command makeDropoff() {
+        return shipStatus.makeDropoff();
+    }
 }

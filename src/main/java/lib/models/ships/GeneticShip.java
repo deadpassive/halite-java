@@ -17,6 +17,8 @@ public class GeneticShip extends AbstractShip implements ShipNavigationInterface
 
     private ShipMode shipMode = ShipMode.GATHERING;
 
+    private int distanceFromDeposit;
+
     private List<DirectionScore> directionScores;
 
     public GeneticShip(Ship initialStatus, ShipGenes shipGenes) {
@@ -67,14 +69,24 @@ public class GeneticShip extends AbstractShip implements ShipNavigationInterface
                 break;
 
             case RETURNING:
+                List<Position> depositories = game.me.dropoffs.values().stream().map(d -> d.position).collect(Collectors.toList());
+                depositories.add(game.me.shipyard.position);
+
+                Position cloesestDepository = NavigationUtils.closestPosition(this.getPosition(), depositories, game.gameMap);
                 directionScores.addAll(Direction.ALL_CARDINALS.stream()
-                        .map(d -> new DirectionScore(1000 - game.gameMap.calculateDistance(this.getPosition().directionalOffset(d), game.me.shipyard.position), d))
+                        .map(d -> new DirectionScore(1000 - game.gameMap.calculateDistance(this.getPosition().directionalOffset(d), cloesestDepository), d))
                         .collect(Collectors.toList())
                 );
-                directionScores.add(new DirectionScore(1000 - game.gameMap.calculateDistance(this.getPosition(), game.me.shipyard.position), Direction.STILL));
+                directionScores.add(new DirectionScore(1000 - game.gameMap.calculateDistance(this.getPosition(), cloesestDepository), Direction.STILL));
                 break;
         }
     }
+
+    public void updateDistanceFromDeposit(Game game) {
+        Position shipPosition = this.getPosition();
+        distanceFromDeposit = game.gameMap.calculateDistance(shipPosition, NavigationUtils.closestDepository(shipPosition, game));
+    }
+
     public ShipMode getShipMode() {
         return shipMode;
     }
@@ -89,6 +101,10 @@ public class GeneticShip extends AbstractShip implements ShipNavigationInterface
 
     public ShipGenes getShipGenes() {
         return shipGenes;
+    }
+
+    public int getDistanceFromDeposit() {
+        return distanceFromDeposit;
     }
 
     @Override

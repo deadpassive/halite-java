@@ -1,12 +1,12 @@
 package lib.navigation;
 
-import lib.hlt.Direction;
-import lib.hlt.GameMap;
-import lib.hlt.Position;
+import lib.hlt.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class NavigationUtils {
     private static final List<Direction> cyclicalDirections = Arrays.asList(Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.NORTH);
@@ -51,6 +51,16 @@ public class NavigationUtils {
             position = position.directionalOffset(rayDirection);
         }
         return positions;
+    }
+
+    public static Position closestDepository(Position position, Game game) {
+        List<Position> positions = game.me.dropoffs.values().stream().map(d -> d.position).collect(Collectors.toList());
+        positions.add(game.me.shipyard.position);
+        return closestPosition(position, positions, game.gameMap);
+    }
+
+    public static Position closestPosition(Position position, List<Position> positions, GameMap gameMap) {
+        return positions.stream().sorted(Comparator.comparing(p -> gameMap.calculateDistance(p, position))).findFirst().get();
     }
 
     /**

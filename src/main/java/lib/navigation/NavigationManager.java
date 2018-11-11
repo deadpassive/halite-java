@@ -10,6 +10,8 @@ import java.util.stream.Collectors;
 
 public class NavigationManager {
 
+    private List<Position> ignoreCollisionsAt = new ArrayList<>();
+
     private List<Position> occupiedPositions = new ArrayList<>();
     private List<Position> possibleEnemyPositions = new ArrayList<>();
 
@@ -45,8 +47,10 @@ public class NavigationManager {
             for (DirectionScore directionScore : sortedDirectionScores) {
                 Position targetPosition = gameMap.normalize(ship.getPosition().directionalOffset(directionScore.getDirection()));
 
-                if (!occupiedPositions.contains(targetPosition) && !possibleEnemyPositions.contains(targetPosition)) {
-                    // If the ships position modified by the direction isnt already occupied
+                // If the ships position modified by the direction isnt already occupied
+                if ((!occupiedPositions.contains(targetPosition) && !possibleEnemyPositions.contains(targetPosition)) ||
+                        // or the target position is in the list of positions to ignore
+                        ignoreCollisionsAt.contains(targetPosition)) {
                     // then add the command to move the ship in that direction
                     commands.add(ship.move(directionScore.getDirection()));
                     // add the resulting position to the list of occupied positions
@@ -99,6 +103,17 @@ public class NavigationManager {
                         .collect(Collectors.toList()));
             }
         }
+    }
+
+    public void addIgnoredPosition(Position position) {
+        ignoreCollisionsAt.add(position);
+    }
+
+    public void addAllIgnoredPosition(List<Position> positions) {
+        ignoreCollisionsAt.addAll(positions);
+    }
+    public void clearIgnoredPositions() {
+        ignoreCollisionsAt.clear();
     }
 
     public void markOccupied(Position occupiedPosition) {

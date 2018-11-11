@@ -1,5 +1,5 @@
 {
   "returnHaliteAmount": 800,
   "gatherPositionHaliteAmount": 80,
-  "rayLength": 5
+  "rayLength": 8
 }

@@ -2,6 +2,7 @@ package lib.models.ships;
 
 import lib.hlt.*;
 import lib.models.genes.ShipGenes;
+import lib.models.modes.ShipMode;
 import lib.navigation.DirectionScore;
 import lib.navigation.NavigationUtils;
 import lib.navigation.ShipNavigationInterface;
@@ -55,7 +56,7 @@ public class GeneticShip extends AbstractShip implements ShipNavigationInterface
 
                             // At most 1000, sometimes this can exceed 1000 without the min because lots of halite can drop in the same cell when ships crash
                             return new DirectionScore(
-                                    Math.min(NavigationUtils.totalHaliteAtPositions(game.gameMap, positionsInRay) / positionsInRay.size(), 1000)
+                                    Math.min(NavigationUtils.totalHaliteAtPositions(game.gameMap, positionsInRay, this.getPosition()) / positionsInRay.size(), 1000)
                                     , d
                             );
                         }

@@ -1,4 +1,4 @@
-package lib.models.ships;
+package lib.models.modes;
 
 public enum ShipMode {
     FORCED_GATHERING, GATHERING, RETURNING, MIGRATING

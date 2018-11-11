@@ -6,6 +6,16 @@ public class ShipGenes {
     private int gatherPositionHaliteAmount;
     private int rayLength;
 
+    @Override
+    public String toString() {
+        return "ShipGenes{" +
+                "migrateHaliteAmount=" + migrateHaliteAmount +
+                ", returnHaliteAmount=" + returnHaliteAmount +
+                ", gatherPositionHaliteAmount=" + gatherPositionHaliteAmount +
+                ", rayLength=" + rayLength +
+                '}';
+    }
+
     public int getRayLength() {
         return rayLength;
     }

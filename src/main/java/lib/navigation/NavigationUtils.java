@@ -11,6 +11,24 @@ import java.util.List;
 public class NavigationUtils {
     private static final List<Direction> cyclicalDirections = Arrays.asList(Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.NORTH);
 
+    /**
+     * For a given position calculate a ray from that position in the specific direction.
+     * ship:        >
+     * positions:   #
+     *
+     *       #
+     *     # #
+     *   # # #
+     * > # # #
+     *   # # #
+     *     # #
+     *       #
+     *
+     * @param shipPosition start position of the ray
+     * @param rayDirection direction of the ray
+     * @param rayLength length of the ray
+     * @return {@link Position}s within the ray
+     */
     public static List<Position> getMapCellsInRay(Position shipPosition, Direction rayDirection, int rayLength) {
         // TODO normalize these positions?
         List<Position> positions = new ArrayList<>();
@@ -35,10 +53,26 @@ public class NavigationUtils {
         return positions;
     }
 
+    /**
+     * Returns the total amount of halite in a list of positions
+     * @param gameMap {@link GameMap} to extract halite amounts from
+     * @param positions {@link Position} positions to check halite for
+     * @return amount of halite at the positions
+     */
     public static int totalHaliteAtPositions(GameMap gameMap, List<Position> positions) {
         return positions.stream().mapToInt(p -> gameMap.at(p).halite).sum();
     }
 
+    /**
+     * Returns the sum of the (halite at a position divided by the distance of that position from the start position.
+     * @param gameMap {@link GameMap} to extract halite amounts from
+     * @param positions {@link Position}s to check halite for at
+     * @param startPosition {@link Position} to calculate the distance to other positions
+     * @return sum of halite modified by distance from start position
+     */
+    public static int totalHaliteAtPositions(GameMap gameMap, List<Position> positions, Position startPosition) {
+        return positions.stream().mapToInt(p -> gameMap.at(p).halite / gameMap.calculateDistance(p, startPosition)).sum();
+    }
 
     private static Direction leftPerpendicularDirection(Direction direction) {
         return cyclicalDirections.get(cyclicalDirections.lastIndexOf(direction) - 1);

@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lib.hlt.*;
 import lib.models.genes.BotGenes;
 import lib.models.genes.ShipGenes;
+import lib.models.modes.BotMode;
+import lib.models.modes.ShipMode;
 import lib.models.ships.*;
 import lib.navigation.DirectionScore;
 import lib.navigation.NavigationManager;
@@ -12,6 +14,7 @@ import org.apache.commons.io.IOUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class GeneticBot extends AbstractBot<GeneticShip> {
@@ -21,6 +24,8 @@ public class GeneticBot extends AbstractBot<GeneticShip> {
 
     private ShipGenes shipGenes;
     private BotGenes botGenes;
+
+    private BotMode botMode = BotMode.BUILDING_SHIPS;
 
     private NavigationManager navigationManager = new NavigationManager();
 
@@ -62,6 +67,24 @@ public class GeneticBot extends AbstractBot<GeneticShip> {
         botGenes = mapper.readValue(IOUtils.toString(genes, "utf8"), BotGenes.class);
     }
 
+    private void setBotMode() {
+        // If we are towards the end of the game then set mode to FORCED_RETURNING which will modify the navigation manager
+        if (((double)(Constants.MAX_TURNS - game.turnNumber) / Constants.MAX_TURNS) < botGenes.getForcedReturnTurnRemainingThreshold()) {
+            botMode = BotMode.FORCED_RETURNING;
+
+            // If the bot has enough halite to buy a ship
+        } else if (game.me.halite >= Constants.SHIP_COST &&
+                    // and the create ship threshold is less than the proportion of turns left
+                    (haliteRemainingBelowThreshold(botGenes.getCreateShipHaliteRemainingThreshold()) && turnsRemainingBelowThreshold(botGenes.getCreateShipTurnRemainingThreshold())) &&
+                    // and the shipyard doesnt wont have a ship on it
+                    !navigationManager.getOccupiedPositions().contains(game.gameMap.at(game.me.shipyard).position)) {
+            botMode = BotMode.BUILDING_SHIPS;
+        } else {
+            botMode = BotMode.STOCKPILING;
+        }
+        Log.log(String.format("Bot mode: %s", botMode));
+    }
+
     /**
      * Update the {@link ShipMode}s
      */
@@ -71,6 +94,13 @@ public class GeneticBot extends AbstractBot<GeneticShip> {
             if (cantAffordToMove(ship)) {
                 // then set the ships mode to forced gathering
                 ship.setShipMode(ShipMode.FORCED_GATHERING);
+                continue;
+            }
+
+            // If the bot is in forced returning mode
+            if (botMode.equals(BotMode.FORCED_RETURNING)) {
+                // then set the ships mode to returning
+                ship.setShipMode(ShipMode.RETURNING);
                 continue;
             }
 
@@ -117,6 +147,7 @@ public class GeneticBot extends AbstractBot<GeneticShip> {
     }
 
     private int haliteOnMap(GameMap gameMap) {
+        Log.log("Calculating total halite on the map");
         int halite = 0;
         for (int x = 0; x < gameMap.width; x++) {
             for (int y = 0; y < gameMap.height; y++) {
@@ -129,11 +160,6 @@ public class GeneticBot extends AbstractBot<GeneticShip> {
     private boolean haliteRemainingBelowThreshold(double threshold) {
         int haliteDepleted = initialHalite - remainingHalite;
         double proportionHaliteRemaining = (double) haliteDepleted / (double) initialHalite;
-        Log.log(String.format("initialHalite: %s", initialHalite));
-        Log.log(String.format("remainingHalite: %s", remainingHalite));
-        Log.log(String.format("haliteDepleted: %s", haliteDepleted));
-        Log.log(String.format("proportionHaliteRemaining: %s", proportionHaliteRemaining));
-        Log.log(String.format("threshold: %s", threshold));
 
         Log.log(String.format("haliteRemainingBelowThreshold: %s", proportionHaliteRemaining < threshold));
         return proportionHaliteRemaining < threshold;
@@ -195,23 +221,26 @@ public class GeneticBot extends AbstractBot<GeneticShip> {
         setShipModes();
         // For each ship create a list of direction - score pairs
         updateShipDirectionScores();
+
+        setBotMode();
+
+        // If we are are forcing return then set allow the navigation manager to crash ships onto dropoffs and shipyards
+        if (botMode.equals(BotMode.FORCED_RETURNING)) {
+            List<Position> depositPositions = game.me.dropoffs.values().stream().map(dropoff -> dropoff.position).collect(Collectors.toList());
+            depositPositions.add(game.me.shipyard.position);
+            navigationManager.addAllIgnoredPosition(depositPositions);
+        }
+
         // Convert the ship direction scores into the best possible set of commands
         commands.addAll(navigationManager.resolveShipDirections(ships.values(), game.gameMap));
 
         // If the bot has enough halite to buy a ship
-        if (game.me.halite >= Constants.SHIP_COST &&
-                // and the create ship threshold is less than the proportion of turns left
-                (haliteRemainingBelowThreshold(botGenes.getCreateShipHaliteRemainingThreshold()) && turnsRemainingBelowThreshold(botGenes.getCreateShipTurnRemainingThreshold())) &&
-
-                // and the shipyard doesnt wont have a ship on it
-                !navigationManager.getOccupiedPositions().contains(game.gameMap.at(game.me.shipyard).position))
-        {
+        if (botMode.equals(BotMode.BUILDING_SHIPS)) {
             // tell this shipyard to spawn
             commands.add(game.me.shipyard.spawn());
             // Aller the navigation manager that we are spawning a ship
             navigationManager.markOccupied(game.me.shipyard.position);
         }
-
 
         return commands;
     }

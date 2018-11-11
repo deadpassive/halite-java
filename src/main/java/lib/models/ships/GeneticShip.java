@@ -73,8 +73,6 @@ public class GeneticShip extends AbstractShip implements ShipNavigationInterface
                 directionScores.add(new DirectionScore(1000 - game.gameMap.calculateDistance(this.getPosition(), game.me.shipyard.position), Direction.STILL));
                 break;
         }
-        Log.log(String.format("Ship %s - %s", this.getId(), directionScores));
-
     }
     public ShipMode getShipMode() {
         return shipMode;

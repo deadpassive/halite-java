@@ -1,3 +1,5 @@
 {
-  "createShipThreshold": 0.6
+  "createShipTurnRemainingThreshold": 0.6,
+  "createShipHaliteRemainingThreshold": 0.4
+
 }

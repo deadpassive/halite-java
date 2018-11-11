@@ -1,9 +1,14 @@
 package lib.models.genes;
 
 public class BotGenes {
-    private double createShipThreshold;
+    private double createShipTurnRemainingThreshold;
+    private double createShipHaliteRemainingThreshold;
 
-    public double getCreateShipThreshold() {
-        return createShipThreshold;
+    public double getCreateShipTurnRemainingThreshold() {
+        return createShipTurnRemainingThreshold;
+    }
+
+    public double getCreateShipHaliteRemainingThreshold() {
+        return createShipHaliteRemainingThreshold;
     }
 }

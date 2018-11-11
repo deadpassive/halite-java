@@ -93,4 +93,8 @@ public class InvestmentManager {
     public void setDropOffCommandIssued(boolean dropOffCommandIssued) {
         this.dropOffCommandIssued = dropOffCommandIssued;
     }
+
+    public void onTurnStart() {
+        setDropOffCommandIssued(false);
+    }
 }

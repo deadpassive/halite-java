@@ -64,8 +64,11 @@ public class SimpleBot extends AbstractBot<SimpleShip> {
         }
 
         return commandQueue;
+        }
+    @Override
+    protected String getBotName(){
+        return getClass().getName();
     }
-
     @Override
     protected void onTurnStart() {
 

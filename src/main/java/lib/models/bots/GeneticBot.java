@@ -13,7 +13,6 @@ import lib.navigation.DirectionScore;
 import lib.navigation.NavigationManager;
 import org.apache.commons.io.IOUtils;
 
-import javax.print.DocFlavor;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
@@ -89,7 +88,11 @@ public class GeneticBot extends AbstractBot<GeneticShip> {
             botMode = BotMode.INVESTING_IN_SHIPS;
 
             // If the threshold for building a drop off is met
-        } else if (avgDistanceToHalite > (botGenes.getCreateDropoffAverageDistanceToHalite())) {
+        } else if (haliteRemainingBelowThreshold(botGenes.getCreateDropoffHaliteRemainingThreshold()) &&
+                // and the threshold is less than the proportion of turns left
+                turnsRemainingBelowThreshold(botGenes.getCreateDropoffTurnRemainingThreshold()) &&
+                // and the threshold of building a drop off is met
+                avgDistanceToHalite > (botGenes.getCreateDropoffAverageDistanceToHalite())) {
 
             botMode = BotMode.INVESTING_IN_DROPOFFS;
 
@@ -202,7 +205,7 @@ public class GeneticBot extends AbstractBot<GeneticShip> {
         return halite;
     }
 
-    private double calculateAverageDistanceToHalite() {
+    private double calculateAverageDistanceToGatheringShips() {
         OptionalDouble distance = ships.values().stream()
                 .filter(s -> s.getShipMode().equals(ShipMode.GATHERING))
                 .mapToInt(GeneticShip::getDistanceFromDeposit)
@@ -229,18 +232,24 @@ public class GeneticBot extends AbstractBot<GeneticShip> {
         return proportionTurnsRemaining < threshold;
     }
 
+    public ArrayList<Command> cleanseMoveCommand(ArrayList<Command> commands, String id) {
+        Log.log(String.format("Attempting to remove move command for %s", id));
+        return (ArrayList<Command>) commands.stream().filter(c -> !c.command.contains("m " + id)).collect(Collectors.toList());
+    }
+
     @Override
     protected void onTurnStart() {
         navigationManager.onTurnStart(game);
-        investmentManager.setDropOffCommandIssued(false);
-
-        remainingHalite = haliteOnMap(game.gameMap);
+        investmentManager.onTurnStart();
 
         // Update each ships distance from its closest deposit
         for (GeneticShip ship : ships.values()) {
             ship.updateDistanceFromDeposit(game);
         }
-        avgDistanceToHalite = calculateAverageDistanceToHalite();
+        avgDistanceToHalite = calculateAverageDistanceToGatheringShips();
+        remainingHalite = haliteOnMap(game.gameMap);
+
+        Log.log(String.format("Average distance from depository to halite: %s", avgDistanceToHalite));
         Log.log(String.format("Remaining halite: %s", remainingHalite));
     }
 
@@ -270,8 +279,9 @@ public class GeneticBot extends AbstractBot<GeneticShip> {
         investmentManager = new InvestmentManager(navigationManager);
 
         initialHalite = haliteOnMap(game.gameMap);
-        Log.log(String.format("Initial halite: %s", initialHalite));
         remainingHalite = initialHalite;
+
+        Log.log(String.format("Initial halite: %s", initialHalite));
     }
 
     @Override
@@ -314,12 +324,8 @@ public class GeneticBot extends AbstractBot<GeneticShip> {
         return new GeneticShip(initialStatus, shipGenes);
     }
 
-    public ArrayList<Command> cleanseMoveCommand(ArrayList<Command> commands, String id) {
-        Log.log(String.format("Attempting to remove move command for %s", id));
-        Log.log(String.format("commands %s", commands));
-        Log.log(String.format("filtered commands %s", commands.stream().filter(c -> c.command.contains("m " + id)).collect(Collectors.toList())));
-        Log.log(String.format("commands mapped to string %s", commands.stream().map(c -> c.command).collect(Collectors.toList())));
-
-        return (ArrayList<Command>) commands.stream().filter(c -> !c.command.contains("m " + id)).collect(Collectors.toList());
+    @Override
+    protected String getBotName() {
+        return "testing";
     }
 }

@@ -5,6 +5,8 @@ public class BotGenes {
     private double createShipHaliteRemainingThreshold;
     private double createDropoffAverageDistanceToHalite;
     private double forcedReturnTurnRemainingThreshold;
+    private double createDropoffTurnRemainingThreshold;
+    private double createDropoffHaliteRemainingThreshold;
 
     @Override
     public String toString() {
@@ -13,7 +15,17 @@ public class BotGenes {
                 ", createShipHaliteRemainingThreshold=" + createShipHaliteRemainingThreshold +
                 ", createDropoffAverageDistanceToHalite=" + createDropoffAverageDistanceToHalite +
                 ", forcedReturnTurnRemainingThreshold=" + forcedReturnTurnRemainingThreshold +
+                ", createDropoffTurnRemainingThreshold=" + createDropoffTurnRemainingThreshold +
+                ", createDropoffHaliteRemainingThreshold=" + createDropoffHaliteRemainingThreshold +
                 '}';
+    }
+
+    public double getCreateDropoffTurnRemainingThreshold() {
+        return createDropoffTurnRemainingThreshold;
+    }
+
+    public double getCreateDropoffHaliteRemainingThreshold() {
+        return createDropoffHaliteRemainingThreshold;
     }
 
     public double getCreateDropoffAverageDistanceToHalite() {

@@ -22,7 +22,7 @@ public abstract class AbstractShipState {
 
     public abstract void evaluateState(Game game, StatefulShip ship);
 
-    public abstract Command execute(Game game, StatefulShip ship);
+    public abstract void execute(Game game, StatefulShip ship);
 
     public abstract void exit(StatefulShip ship);
 }

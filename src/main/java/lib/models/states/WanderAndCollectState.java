@@ -13,9 +13,14 @@
 package lib.models.states;
 
 import lib.hlt.*;
+import lib.models.ships.AbstractShip;
 import lib.models.ships.StatefulShip;
+import lib.navigation.DirectionScore;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 /**
  * Mimic the default action where the ship wanders randomly collecting halite.
@@ -43,20 +48,42 @@ public class WanderAndCollectState extends AbstractShipState {
     }
 
     @Override
-    public Command execute(Game game, StatefulShip ship) {
+    public void execute(Game game, StatefulShip ship) {
         Log.log("Ship " + ship.getId() + " executing state WanderAndCollect");
-        if (game.gameMap.at(ship.getPosition()).halite < Constants.MAX_HALITE / 10 || ship.isFull()) {
-            final Direction randomDirection = Direction.ALL_CARDINALS.get(randomGenerator.nextInt(4));
-            Log.log("Ship " + ship.getId() + " moving in randomly selected direction " + randomDirection);
-            return ship.move(randomDirection);
+        List<DirectionScore> directionScores = new ArrayList<>();
+        // Add all the cardinal directions with scores based on how much halite they have
+        directionScores.addAll(Direction.ALL_CARDINALS.stream()
+                .map(d -> new DirectionScore(
+                        game.gameMap.at(ship.getPosition().directionalOffset(d)).halite,
+                        d)
+                ).collect(Collectors.toList())
+        );
+
+        if (game.gameMap.at(ship.getPosition()).halite >= Constants.MAX_HALITE / 10) {
+            Log.log("Ship " + ship.getId() + " would like to stay at current position to collect halite");
+            // Add stay still as having the highest score because that's what we really want to do
+            directionScores.add(new DirectionScore(1000, Direction.STILL));
+        } else if (cantAffordToMove(game, ship)) {
+            directionScores.add(new DirectionScore(10000, Direction.STILL));
         } else {
-            Log.log("Ship " + ship.getId() + " staying at current position to collect halite");
-            return ship.stayStill();
+            // Add stay still as a last resort
+            directionScores.add(new DirectionScore(0, Direction.STILL));
         }
+
+        ship.setDirectionScores(directionScores);
     }
 
     @Override
     public void exit(StatefulShip ship) {
         Log.log("Ship " + ship.getId() + " leaving state WanderAndCollect");
+    }
+
+    /**
+     * Check that the ship has enough halite to move off the current cell that its on.
+     * @param ship The {@link AbstractShip} to check for
+     * @return true if the ship cant move, false if it can
+     */
+    private boolean cantAffordToMove(Game game, AbstractShip ship) {
+        return ship.getHalite() < ((double) game.gameMap.at(ship.getPosition()).halite * 0.1);
     }
 }

@@ -12,11 +12,15 @@
  */
 package lib.models.states;
 
-import lib.hlt.Command;
 import lib.hlt.Direction;
 import lib.hlt.Game;
 import lib.hlt.Log;
 import lib.models.ships.StatefulShip;
+import lib.navigation.DirectionScore;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class ReturnToShipyardState extends AbstractShipState {
 
@@ -38,12 +42,16 @@ public class ReturnToShipyardState extends AbstractShipState {
     }
 
     @Override
-    public Command execute(Game game, StatefulShip ship) {
+    public void execute(Game game, StatefulShip ship) {
         // TODO: handle collisions and clever navigation
         Log.log("Ship " + ship.getId() + " executing state ReturnToShipyard");
-        Direction direction = game.gameMap.naiveNavigate(ship.getShipStatus(), game.me.shipyard.position);
-        Log.log("Ship " + ship.getId() + " moving in direction " + direction + " from " + ship.getPosition() + " to " + game.me.shipyard.position);
-        return ship.move(direction);
+        List<DirectionScore> directionScores = new ArrayList<>();
+        directionScores.addAll(Direction.ALL_CARDINALS.stream()
+                .map(d -> new DirectionScore(1000 - game.gameMap.calculateDistance(ship.getPosition().directionalOffset(d), game.me.shipyard.position), d))
+                .collect(Collectors.toList())
+        );
+        directionScores.add(new DirectionScore(1000 - game.gameMap.calculateDistance(ship.getPosition(), game.me.shipyard.position), Direction.STILL));
+        ship.setDirectionScores(directionScores);
     }
 
     @Override

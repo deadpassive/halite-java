@@ -41,10 +41,13 @@ public class NavigationManager {
             for (DirectionScore directionScore : sortedDirectionScores) {
                 Position targetPosition = gameMap.normalize(ship.getPosition().directionalOffset(directionScore.getDirection()));
 
+                Log.log("Checking ship " + ship.getId() + " direction " + directionScore.getDirection() + " with score " + directionScore.getScore());
+
                 if (!occupiedPositions.contains(targetPosition)) {
                     // If the ships position modified by the direction isnt already occupied
                     // then add the command to move the ship in that direction
                     commands.add(ship.move(directionScore.getDirection()));
+                    Log.log("Ship " + ship.getId() + " moving in direction " + directionScore.getDirection() + " with score " + directionScore.getScore());
                     // add the resulting position to the list of occupied positions
                     markOccupied(targetPosition);
                     // break out of this ships loop over the sorted direction scores

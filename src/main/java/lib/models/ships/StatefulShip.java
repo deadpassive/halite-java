@@ -15,9 +15,14 @@ package lib.models.ships;
 import lib.hlt.*;
 import lib.models.states.AbstractShipState;
 import lib.models.states.WanderAndCollectState;
+import lib.navigation.DirectionScore;
+import lib.navigation.ShipNavigationInterface;
 
-public class StatefulShip extends AbstractShip {
+import java.util.List;
+
+public class StatefulShip extends AbstractShip implements ShipNavigationInterface {
     private AbstractShipState currentState;
+    private List<DirectionScore> directionScores;
 
     public StatefulShip(Ship initialStatus) {
         super(initialStatus);
@@ -39,10 +44,26 @@ public class StatefulShip extends AbstractShip {
         }
     }
 
-    public Command getCommand(Game game) {
-        // Ask the current state to evaluate the current situation and switch states if necessary
+    public void updateState(Game game) {
         Log.log("Ship " + getId() + " evaluating state");
         currentState.evaluateState(game, this);
-        return currentState.execute(game, this);
+        // Ask the current state to evaluate the current situation and switch states if necessary
+        currentState.execute(game, this);
+    }
+
+    @Override
+    public List<DirectionScore> getDirectionScores() {
+        return directionScores;
+    }
+
+    public void setDirectionScores(List<DirectionScore> directionScores) {
+        this.directionScores = directionScores;
+    }
+
+    @Override
+    public String toString() {
+        return "StatefulShip{" +
+                "currentState=" + currentState +
+                '}';
     }
 }

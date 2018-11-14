@@ -7,7 +7,8 @@ import lib.hlt.Position;
 import java.util.List;
 
 public interface ShipNavigationInterface {
-    public List<DirectionScore> getDirectionScores();
-    public Position getPosition();
-    public Command move(Direction direction);
+    List<DirectionScore> getDirectionScores();
+    Position getPosition();
+    Command move(Direction direction);
+    int getId();
 }

@@ -61,21 +61,21 @@ public class GeneReader {
     private ShipGenes randomShipGenes() {
         ShipGenes shipGenes = new ShipGenes();
         // Random number between 700 and 1000
-        shipGenes.setReturnHaliteAmount(random.nextInt(301) + 700);
+        shipGenes.setReturnHaliteAmount(random.nextInt(200) + 800);
         // Random number between 1 and 15
-        shipGenes.setRayLength(random.nextInt(15) + 1);
+        shipGenes.setRayLength(random.nextInt(13) + 3);
         // Random number between 1 and 300
-        shipGenes.setGatherPositionHaliteAmount(random.nextInt(301) + 1);
+        shipGenes.setGatherPositionHaliteAmount(random.nextInt(250) + 1);
 
         return shipGenes;
     }
 
     private BotGenes randomBotGenes() {
         BotGenes botGenes = new BotGenes();
-        botGenes.setForcedReturnTurnRemainingThreshold(0.0 + random.nextFloat() * (0.2 - 0.0));    // 0.1
-        botGenes.setCreateDropoffHaliteRemainingThreshold(0.2 + random.nextFloat() * (0.6 - 0.2)); // 0.4
-        botGenes.setCreateDropoffTurnRemainingThreshold(0.4 + random.nextFloat() * (0.8 - 0.4));   // 0.6
-        botGenes.setCreateShipHaliteRemainingThreshold(0.2 + random.nextFloat() * (0.8 - 0.2));    // 0.4
+        botGenes.setForcedReturnTurnRemainingThreshold(0.0 + random.nextFloat() * (0.08 - 0.0));    // 0.1
+        botGenes.setCreateDropoffHaliteRemainingThreshold(0.3 + random.nextFloat() * (0.5 - 0.3)); // 0.4
+        botGenes.setCreateDropoffTurnRemainingThreshold(0.5 + random.nextFloat() * (0.7 - 0.5));   // 0.6
+        botGenes.setCreateShipHaliteRemainingThreshold(0.3 + random.nextFloat() * (0.7 - 0.3));    // 0.4
         botGenes.setCreateShipTurnRemainingThreshold(0.4 + random.nextFloat() * (0.8 - 0.4));      // 0.6
         // Random number between 10 and 30
         botGenes.setCreateDropoffAverageDistanceToHalite(random.nextInt(20) + 10);

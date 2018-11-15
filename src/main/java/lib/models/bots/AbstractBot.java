@@ -22,6 +22,7 @@ public abstract class AbstractBot<ShipType extends AbstractShip> {
     Map<Integer, ShipType> ships = new HashMap<>();
     Game game;
     Random randomGenerator;
+    String[] args;
 
     private void updateShips(Collection<Ship> shipStatuses) {
         Map<Integer, ShipType> newShips = new HashMap<>();
@@ -40,6 +41,7 @@ public abstract class AbstractBot<ShipType extends AbstractShip> {
     }
 
     public void run(final String[] args) {
+        this.args = args;
         final long rngSeed;
         if (args.length > 1) {
             rngSeed = Integer.parseInt(args[1]);

@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 
 public class GeneticBot extends AbstractBot<GeneticShip> {
 
-    private final static GeneSource GENE_SOURCE = GeneSource.RANDOM;
+    private GeneSource geneSource = GeneSource.RANDOM;
 
     private UUID gameId = UUID.randomUUID();
 
@@ -260,6 +260,19 @@ public class GeneticBot extends AbstractBot<GeneticShip> {
 
     @Override
     protected void onGameStart() {
+        if (args.length == 1) {
+            switch (args[0]) {
+                case "random":
+                    geneSource = GeneSource.RANDOM;
+                    break;
+                case "hand-tuned":
+                    geneSource = GeneSource.HAND_TUNED;
+                    break;
+                case "optimized":
+                    geneSource = GeneSource.OPTIMIZED;
+                    break;
+            }
+        }
         initialHalite = haliteOnMap(game.gameMap);
         remainingHalite = initialHalite;
 
@@ -269,7 +282,7 @@ public class GeneticBot extends AbstractBot<GeneticShip> {
         // Have to use try / catch because the abstract method doesn't throw any exceptions
         try {
             // Load ship genes
-            shipGenes = geneReader.readShipGenes(GENE_SOURCE);
+            shipGenes = geneReader.readShipGenes(geneSource);
             shipGenes.setGameId(gameId);
             Log.log(String.format("Ship genes: %s", shipGenes));
         } catch (IOException e){
@@ -277,7 +290,7 @@ public class GeneticBot extends AbstractBot<GeneticShip> {
         }
         try {
             // Load bot genes
-            botGenes = geneReader.readBotGenes(GENE_SOURCE);
+            botGenes = geneReader.readBotGenes(geneSource);
             botGenes.setGameId(gameId);
             Log.log(String.format("Bot genes: %s", botGenes));
         } catch (IOException e){
@@ -336,6 +349,6 @@ public class GeneticBot extends AbstractBot<GeneticShip> {
 
     @Override
     protected String getBotName() {
-        return "testing";
+        return geneSource.toString();
     }
 }

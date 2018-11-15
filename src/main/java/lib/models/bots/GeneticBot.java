@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lib.hlt.*;
 import lib.investment.Investment;
 import lib.investment.InvestmentManager;
-import lib.io.GenePersistence;
+import lib.io.GeneWriter;
 import lib.models.genes.BotGenes;
 import lib.models.genes.ShipGenes;
 import lib.models.modes.BotMode;
@@ -239,10 +239,9 @@ public class GeneticBot extends AbstractBot<GeneticShip> {
     }
 
     private void writeGenes() {
-        GenePersistence genePersistence = new GenePersistence();
-        Log.log("Creating a genePersistence");
-        genePersistence.writeBotGenes(botGenes);
-        genePersistence.writeShipGenes(shipGenes);
+        GeneWriter geneWriter = new GeneWriter();
+        Log.log("Creating a geneWriter");
+        geneWriter.writeGenes(botGenes, shipGenes);
     }
 
     @Override

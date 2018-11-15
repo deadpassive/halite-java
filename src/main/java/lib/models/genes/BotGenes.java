@@ -7,8 +7,9 @@ import javax.persistence.*;
 public class BotGenes {
 
     @Id
-    @GeneratedValue
-    private int id;
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @Column(name = "bot_id", updatable = false, nullable = false)
+    private Long id;
 
     @Column(name = "create_ship_turn_remaining_threshold", nullable = false)
     private double createShipTurnRemainingThreshold;
@@ -41,6 +42,38 @@ public class BotGenes {
                 ", createDropoffTurnRemainingThreshold=" + createDropoffTurnRemainingThreshold +
                 ", createDropoffHaliteRemainingThreshold=" + createDropoffHaliteRemainingThreshold +
                 '}';
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setCreateShipTurnRemainingThreshold(double createShipTurnRemainingThreshold) {
+        this.createShipTurnRemainingThreshold = createShipTurnRemainingThreshold;
+    }
+
+    public void setCreateShipHaliteRemainingThreshold(double createShipHaliteRemainingThreshold) {
+        this.createShipHaliteRemainingThreshold = createShipHaliteRemainingThreshold;
+    }
+
+    public void setCreateDropoffAverageDistanceToHalite(double createDropoffAverageDistanceToHalite) {
+        this.createDropoffAverageDistanceToHalite = createDropoffAverageDistanceToHalite;
+    }
+
+    public void setForcedReturnTurnRemainingThreshold(double forcedReturnTurnRemainingThreshold) {
+        this.forcedReturnTurnRemainingThreshold = forcedReturnTurnRemainingThreshold;
+    }
+
+    public void setCreateDropoffTurnRemainingThreshold(double createDropoffTurnRemainingThreshold) {
+        this.createDropoffTurnRemainingThreshold = createDropoffTurnRemainingThreshold;
+    }
+
+    public void setCreateDropoffHaliteRemainingThreshold(double createDropoffHaliteRemainingThreshold) {
+        this.createDropoffHaliteRemainingThreshold = createDropoffHaliteRemainingThreshold;
     }
 
     public double getCreateDropoffTurnRemainingThreshold() {

@@ -7,8 +7,9 @@ import javax.persistence.*;
 public class ShipGenes {
 
     @Id
-    @GeneratedValue
-    private int id;
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @Column(name = "bot_id", updatable = false, nullable = false)
+    private Long id;
 
     @Column(name = "migrate_halite_amount", nullable = false)
     private int migrateHaliteAmount;
@@ -30,6 +31,30 @@ public class ShipGenes {
                 ", gatherPositionHaliteAmount=" + gatherPositionHaliteAmount +
                 ", rayLength=" + rayLength +
                 '}';
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setMigrateHaliteAmount(int migrateHaliteAmount) {
+        this.migrateHaliteAmount = migrateHaliteAmount;
+    }
+
+    public void setReturnHaliteAmount(int returnHaliteAmount) {
+        this.returnHaliteAmount = returnHaliteAmount;
+    }
+
+    public void setGatherPositionHaliteAmount(int gatherPositionHaliteAmount) {
+        this.gatherPositionHaliteAmount = gatherPositionHaliteAmount;
+    }
+
+    public void setRayLength(int rayLength) {
+        this.rayLength = rayLength;
     }
 
     public int getRayLength() {

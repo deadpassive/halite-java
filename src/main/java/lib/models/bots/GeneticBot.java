@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lib.hlt.*;
 import lib.investment.Investment;
 import lib.investment.InvestmentManager;
+import lib.io.GenePersistence;
 import lib.models.genes.BotGenes;
 import lib.models.genes.ShipGenes;
 import lib.models.modes.BotMode;
@@ -237,6 +238,13 @@ public class GeneticBot extends AbstractBot<GeneticShip> {
         return (ArrayList<Command>) commands.stream().filter(c -> !c.command.contains("m " + id)).collect(Collectors.toList());
     }
 
+    private void writeGenes() {
+        GenePersistence genePersistence = new GenePersistence();
+        Log.log("Creating a genePersistence");
+        genePersistence.writeBotGenes(botGenes);
+        genePersistence.writeShipGenes(shipGenes);
+    }
+
     @Override
     protected void onTurnStart() {
         navigationManager.onTurnStart(game);
@@ -286,7 +294,11 @@ public class GeneticBot extends AbstractBot<GeneticShip> {
 
     @Override
     protected void onGameEnd() {
-
+        try {
+            writeGenes();
+        } catch (Exception e) {
+            Log.log(e.getMessage());
+        }
     }
 
     @Override

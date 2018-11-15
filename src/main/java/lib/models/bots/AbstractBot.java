@@ -70,7 +70,7 @@ public abstract class AbstractBot<ShipType extends AbstractShip> {
 
             onTurnEnd();
 
-        } while (game.turnNumber != Constants.MAX_TURNS);
+        } while (game.turnNumber != Constants.MAX_TURNS - 1);
 
         onGameEnd();
     }

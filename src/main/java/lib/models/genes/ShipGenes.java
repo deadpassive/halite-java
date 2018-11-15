@@ -1,9 +1,25 @@
 package lib.models.genes;
 
+import javax.persistence.*;
+
+@Entity
+@Table(name = "public.ship_genes")
 public class ShipGenes {
+
+    @Id
+    @GeneratedValue
+    private int id;
+
+    @Column(name = "migrate_halite_amount", nullable = false)
     private int migrateHaliteAmount;
+
+    @Column(name = "return_halite_amount", nullable = false)
     private int returnHaliteAmount;
+
+    @Column(name = "gather_position_halite_amount", nullable = false)
     private int gatherPositionHaliteAmount;
+
+    @Column(name = "ray_length", nullable = false)
     private int rayLength;
 
     @Override

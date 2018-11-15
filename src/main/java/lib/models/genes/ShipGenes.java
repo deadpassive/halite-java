@@ -3,7 +3,7 @@ package lib.models.genes;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "public.ship_genes")
+@Table(name = "dev.ship_genes")
 public class ShipGenes {
 
     @Id

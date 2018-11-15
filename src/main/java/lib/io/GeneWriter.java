@@ -1,33 +1,32 @@
 package lib.io;
 
-import com.fasterxml.classmate.AnnotationConfiguration;
-import lib.hlt.Log;
 import lib.models.genes.BotGenes;
 import lib.models.genes.ShipGenes;
-import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.logging.Level;
 
 public class GeneWriter {
 
     public GeneWriter(){}
 
     public void writeGenes(BotGenes botGenes, ShipGenes shipGenes) {
+        // Reduce hibernate logging so that stdout is kept clear for halite.exe
+        java.util.logging.Logger.getLogger("org.hibernate").setLevel(Level.SEVERE);
+
         SessionFactory sessionFactory = new Configuration()
-                .configure(new File("hibernate.cgf.xml"))
                 .addAnnotatedClass(BotGenes.class)
                 .addAnnotatedClass(ShipGenes.class)
                 .buildSessionFactory();
         Session session = sessionFactory.openSession();
+
         writeBotGenes(botGenes, session);
         writeShipGenes(shipGenes, session);
+
         session.close();
+        sessionFactory.close();
     }
 
     private void writeBotGenes(BotGenes botGenes, Session session) {

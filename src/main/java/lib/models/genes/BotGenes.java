@@ -3,7 +3,7 @@ package lib.models.genes;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "public.bot_genes")
+@Table(name = "dev.bot_genes")
 public class BotGenes {
 
     @Id

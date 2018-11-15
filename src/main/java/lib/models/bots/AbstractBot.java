@@ -70,9 +70,12 @@ public abstract class AbstractBot<ShipType extends AbstractShip> {
 
             onTurnEnd();
 
-        } while (game.turnNumber != Constants.MAX_TURNS - 1);
-
-        onGameEnd();
+            if (game.turnNumber == Constants.MAX_TURNS -1) {
+                // On the penultimate turn call onGameEnd() (after the final move the processes are
+                // forced to terminate by halite.exe)
+                onGameEnd();
+            }
+        } while (game.turnNumber != Constants.MAX_TURNS );
     }
 
     protected abstract String getBotName();

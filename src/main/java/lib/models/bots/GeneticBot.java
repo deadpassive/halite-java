@@ -240,7 +240,7 @@ public class GeneticBot extends AbstractBot<GeneticShip> {
 
     private void writeGenes() {
         GeneWriter geneWriter = new GeneWriter();
-        Log.log("Creating a geneWriter");
+        Log.log("Creating a GeneWriter");
         geneWriter.writeGenes(botGenes, shipGenes);
     }
 

@@ -1,6 +1,7 @@
 package lib.models.genes;
 
 import javax.persistence.*;
+import java.util.UUID;
 
 @Entity
 @Table(name = "dev.ship_genes")
@@ -8,8 +9,11 @@ public class ShipGenes {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    @Column(name = "bot_id", updatable = false, nullable = false)
+    @Column(name = "ship_id", updatable = false, nullable = false)
     private Long id;
+
+    @Column(name = "game_id", nullable = false)
+    private UUID gameId;
 
     @Column(name = "migrate_halite_amount", nullable = false)
     private int migrateHaliteAmount;
@@ -26,11 +30,21 @@ public class ShipGenes {
     @Override
     public String toString() {
         return "ShipGenes{" +
-                "migrateHaliteAmount=" + migrateHaliteAmount +
+                "id=" + id +
+                ", gameId=" + gameId +
+                ", migrateHaliteAmount=" + migrateHaliteAmount +
                 ", returnHaliteAmount=" + returnHaliteAmount +
                 ", gatherPositionHaliteAmount=" + gatherPositionHaliteAmount +
                 ", rayLength=" + rayLength +
                 '}';
+    }
+
+    public UUID getGameId() {
+        return gameId;
+    }
+
+    public void setGameId(UUID gameId) {
+        this.gameId = gameId;
     }
 
     public Long getId() {

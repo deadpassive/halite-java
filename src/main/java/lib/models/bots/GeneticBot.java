@@ -1,10 +1,12 @@
 package lib.models.bots;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lib.hlt.*;
 import lib.investment.Investment;
 import lib.investment.InvestmentManager;
+import lib.io.GeneReader;
+import lib.io.GeneSource;
 import lib.io.GeneWriter;
+import lib.models.GameDetails;
 import lib.models.genes.BotGenes;
 import lib.models.genes.ShipGenes;
 import lib.models.modes.BotMode;
@@ -12,27 +14,28 @@ import lib.models.modes.ShipMode;
 import lib.models.ships.*;
 import lib.navigation.DirectionScore;
 import lib.navigation.NavigationManager;
-import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class GeneticBot extends AbstractBot<GeneticShip> {
 
-    private final static String OPTIMAL_SHIP_GENEs_FILE_PATH = "optimal-ship-genes.json";
-    private final static String OPTIMAL_BOT_GENEs_FILE_PATH = "optimal-bot-genes.json";
+    private final static GeneSource GENE_SOURCE = GeneSource.RANDOM;
+
+    private UUID gameId = UUID.randomUUID();
 
     private ShipGenes shipGenes;
     private BotGenes botGenes;
 
+    // Set the initial mode of the bot by hand (always start with investing in ships)
     private BotMode botMode = BotMode.INVESTING_IN_SHIPS;
 
     private NavigationManager navigationManager = new NavigationManager();
     private InvestmentManager investmentManager;
 
     private int initialHalite;
+    private double initialHaliteDensity;
     private int remainingHalite;
     private double avgDistanceToHalite;
 
@@ -51,26 +54,6 @@ public class GeneticBot extends AbstractBot<GeneticShip> {
             INSTANCE = new GeneticBot();
         }
         return INSTANCE;
-    }
-
-    /**
-     * Loads {@link ShipGenes} from json file.
-     * @throws IOException if there is a problem loading the ship genes
-     */
-    private void initialiseOptimalShipGenes() throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        InputStream genes = getClass().getClassLoader().getResourceAsStream(OPTIMAL_SHIP_GENEs_FILE_PATH);
-        shipGenes = mapper.readValue(IOUtils.toString(genes, "utf8"), ShipGenes.class);
-    }
-
-    /**
-     * Loads {@link ShipGenes} from json file.
-     * @throws IOException if there is a problem loading the ship genes
-     */
-    private void initialiseOptimalBotGenes() throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        InputStream genes = getClass().getClassLoader().getResourceAsStream(OPTIMAL_BOT_GENEs_FILE_PATH);
-        botGenes = mapper.readValue(IOUtils.toString(genes, "utf8"), BotGenes.class);
     }
 
     private void setBotMode() {
@@ -233,7 +216,7 @@ public class GeneticBot extends AbstractBot<GeneticShip> {
         return proportionTurnsRemaining < threshold;
     }
 
-    public ArrayList<Command> cleanseMoveCommand(ArrayList<Command> commands, String id) {
+    private ArrayList<Command> cleanseMoveCommand(ArrayList<Command> commands, String id) {
         Log.log(String.format("Attempting to remove move command for %s", id));
         return (ArrayList<Command>) commands.stream().filter(c -> !c.command.contains("m " + id)).collect(Collectors.toList());
     }
@@ -241,7 +224,18 @@ public class GeneticBot extends AbstractBot<GeneticShip> {
     private void writeGenes() {
         GeneWriter geneWriter = new GeneWriter();
         Log.log("Creating a GeneWriter");
-        geneWriter.writeGenes(botGenes, shipGenes);
+        geneWriter.writeGenes(
+                botGenes,
+                shipGenes,
+                GameDetails.GameDetailsBuilder.aGameDetails()
+                        .withGameId(gameId)
+                        .withInitialHalite(initialHalite)
+                        .withInitialHaliteDensity(initialHaliteDensity)
+                        .withMapSize(game.gameMap.height)
+                        .withPlayers(game.players.size())
+                        .withHaliteStockpiled(game.me.halite)
+                        .build()
+        );
     }
 
     @Override
@@ -262,33 +256,38 @@ public class GeneticBot extends AbstractBot<GeneticShip> {
 
     @Override
     protected void onTurnEnd() {
-
     }
 
     @Override
     protected void onGameStart() {
-        try {
-            // Load ship genes from json file in resource folder
-            initialiseOptimalShipGenes();
-            Log.log(String.format("Ship genes: %s", shipGenes));
-        } catch (IOException e){
-            Log.log("Failed to load ship genes");
-            e.printStackTrace();
-        }
-        try {
-            // Load bot genes from json file in resource folder
-            initialiseOptimalBotGenes();
-            Log.log(String.format("Bot genes: %s", botGenes));
-        } catch (IOException e){
-            Log.log("Failed to load bot genes");
-            e.printStackTrace();
-        }
-        investmentManager = new InvestmentManager(navigationManager);
-
         initialHalite = haliteOnMap(game.gameMap);
         remainingHalite = initialHalite;
 
+        initialHaliteDensity = initialHalite / (double) (game.gameMap.height * game.gameMap.width);
+
+        GeneReader geneReader = new GeneReader(game ,initialHaliteDensity);
+        // Have to use try / catch because the abstract method doesn't throw any exceptions
+        try {
+            // Load ship genes
+            shipGenes = geneReader.readShipGenes(GENE_SOURCE);
+            shipGenes.setGameId(gameId);
+            Log.log(String.format("Ship genes: %s", shipGenes));
+        } catch (IOException e){
+            Log.log(String.format("Failed to load ship genes %s", e.getMessage()));
+        }
+        try {
+            // Load bot genes
+            botGenes = geneReader.readBotGenes(GENE_SOURCE);
+            botGenes.setGameId(gameId);
+            Log.log(String.format("Bot genes: %s", botGenes));
+        } catch (IOException e){
+            Log.log(String.format("Failed to load bot genes %s", e.getMessage()));
+        }
+        investmentManager = new InvestmentManager(navigationManager);
+
         Log.log(String.format("Initial halite: %s", initialHalite));
+        Log.log(String.format("Initial halite density: %s", initialHaliteDensity));
+
     }
 
     @Override

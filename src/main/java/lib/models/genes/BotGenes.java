@@ -1,6 +1,7 @@
 package lib.models.genes;
 
 import javax.persistence.*;
+import java.util.UUID;
 
 @Entity
 @Table(name = "dev.bot_genes")
@@ -10,6 +11,9 @@ public class BotGenes {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     @Column(name = "bot_id", updatable = false, nullable = false)
     private Long id;
+
+    @Column(name = "game_id", nullable = false)
+    private UUID gameId;
 
     @Column(name = "create_ship_turn_remaining_threshold", nullable = false)
     private double createShipTurnRemainingThreshold;
@@ -42,6 +46,14 @@ public class BotGenes {
                 ", createDropoffTurnRemainingThreshold=" + createDropoffTurnRemainingThreshold +
                 ", createDropoffHaliteRemainingThreshold=" + createDropoffHaliteRemainingThreshold +
                 '}';
+    }
+
+    public UUID getGameId() {
+        return gameId;
+    }
+
+    public void setGameId(UUID gameId) {
+        this.gameId = gameId;
     }
 
     public Long getId() {

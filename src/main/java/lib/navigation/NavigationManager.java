@@ -8,9 +8,12 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class NavigationManager {
+public class NavigationManager implements NavigationManagerInterface{
+
+    private List<Position> ignoreCollisionsAt = new ArrayList<>();
 
     private List<Position> occupiedPositions = new ArrayList<>();
+    private List<Position> possibleEnemyPositions = new ArrayList<>();
 
     public NavigationManager() {
 
@@ -28,9 +31,11 @@ public class NavigationManager {
         // Sort the ships so the ships with high scores get their first choice (errors otherwise to do with trying to move without halite)
         List<ShipNavigationInterface> sortedShips = ships
                 .stream()
-                .sorted(Comparator.comparing((ShipNavigationInterface s) -> s.getDirectionScores().stream().max(Comparator.comparingInt(DirectionScore::getScore)).map(DirectionScore::getScore).get()).reversed())
+                .sorted(Comparator.comparing((ShipNavigationInterface s) -> s.getDirectionScores().stream()
+                        .max(Comparator.comparingInt(DirectionScore::getScore))
+                        .map(DirectionScore::getScore)
+                        .get()).reversed())
                 .collect(Collectors.toList());
-        Log.log(String.format("sorted ships: %s", sortedShips));
 
         for (ShipNavigationInterface ship : sortedShips) {
             List<DirectionScore> sortedDirectionScores = ship.getDirectionScores().stream()
@@ -38,18 +43,40 @@ public class NavigationManager {
                     .sorted(Comparator.comparingDouble(DirectionScore::getScore).reversed())
                     .collect(Collectors.toList());
 
+            boolean success = false;
             for (DirectionScore directionScore : sortedDirectionScores) {
                 Position targetPosition = gameMap.normalize(ship.getPosition().directionalOffset(directionScore.getDirection()));
 
-                if (!occupiedPositions.contains(targetPosition)) {
-                    // If the ships position modified by the direction isnt already occupied
+                // If the ships position modified by the direction isnt already occupied
+                if ((!occupiedPositions.contains(targetPosition) && !possibleEnemyPositions.contains(targetPosition)) ||
+                        // or the target position is in the list of positions to ignore
+                        ignoreCollisionsAt.contains(targetPosition)) {
                     // then add the command to move the ship in that direction
                     commands.add(ship.move(directionScore.getDirection()));
                     // add the resulting position to the list of occupied positions
                     markOccupied(targetPosition);
+                    success = true;
                     // break out of this ships loop over the sorted direction scores
                     break;
                 }
+            }
+            if (!success) {
+                Log.log(String.format("Unable to find safe position for ship at position (%s, %s)", ship.getPosition().y, ship.getPosition().x));
+                for (DirectionScore directionScore : sortedDirectionScores) {
+                    Position targetPosition = gameMap.normalize(ship.getPosition().directionalOffset(directionScore.getDirection()));
+
+                    if (!occupiedPositions.contains(targetPosition)) {
+                        // If the ships position modified by the direction isnt already occupied
+                        // then add the command to move the ship in that direction
+                        commands.add(ship.move(directionScore.getDirection()));
+                        // add the resulting position to the list of occupied positions
+                        markOccupied(targetPosition);
+                        success = true;
+                        // break out of this ships loop over the sorted direction scores
+                        break;
+                    }
+                }
+
             }
         }
         return commands;
@@ -60,9 +87,33 @@ public class NavigationManager {
     }
 
     public void onTurnStart(Game game) {
-        // For now just set the occupied positions to empty array, in the future this might want to be enemy positions
-        Log.log(String.format("Clearing occupied positions: %s", occupiedPositions));
         occupiedPositions.clear();
+        possibleEnemyPositions.clear();
+
+        for (Player player : game.players) {
+            // Add all possible enemy positions
+            // TODO how to only put in objects that are not already in?
+            if (!player.id.equals(game.me.id)) {
+                possibleEnemyPositions.addAll(player.ships.values().stream()
+                        .flatMap(s -> {
+                            List<Position> positions = s.position.getSurroundingCardinals();
+                            positions.add(s.position);
+                            return positions.stream();
+                        })
+                        .collect(Collectors.toList()));
+            }
+        }
+    }
+
+    public void addIgnoredPosition(Position position) {
+        ignoreCollisionsAt.add(position);
+    }
+
+    public void addAllIgnoredPosition(List<Position> positions) {
+        ignoreCollisionsAt.addAll(positions);
+    }
+    public void clearIgnoredPositions() {
+        ignoreCollisionsAt.clear();
     }
 
     public void markOccupied(Position occupiedPosition) {

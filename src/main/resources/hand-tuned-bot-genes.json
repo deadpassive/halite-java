@@ -1,0 +1,8 @@
+{
+  "createShipTurnRemainingThreshold": 0.6,
+  "createShipHaliteRemainingThreshold": 0.4,
+  "forcedReturnTurnRemainingThreshold": 0.1,
+  "createDropoffAverageDistanceToHalite": 15,
+  "createDropoffTurnRemainingThreshold": 0.6,
+  "createDropoffHaliteRemainingThreshold": 0.4
+}

@@ -22,6 +22,7 @@ public abstract class AbstractBot<ShipType extends AbstractShip> {
     Map<Integer, ShipType> ships = new HashMap<>();
     Game game;
     Random randomGenerator;
+    String[] args;
 
     private void updateShips(Collection<Ship> shipStatuses) {
         Map<Integer, ShipType> newShips = new HashMap<>();
@@ -40,6 +41,7 @@ public abstract class AbstractBot<ShipType extends AbstractShip> {
     }
 
     public void run(final String[] args) {
+        this.args = args;
         final long rngSeed;
         if (args.length > 1) {
             rngSeed = Integer.parseInt(args[1]);
@@ -55,7 +57,7 @@ public abstract class AbstractBot<ShipType extends AbstractShip> {
         // At this point "game" variable is populated with initial map data.
         // This is a good place to do computationally expensive start-up pre-processing.
         // As soon as you call "ready" function below, the 2 second per turn timer will start.
-        game.ready(this.getClass().getName());
+        game.ready(getBotName());
 
         Log.log("Successfully created bot! My Player ID is " + game.myId + ". Bot rng seed is " + rngSeed + ".");
 
@@ -70,10 +72,15 @@ public abstract class AbstractBot<ShipType extends AbstractShip> {
 
             onTurnEnd();
 
-        } while (game.turnNumber != Constants.MAX_TURNS);
-
-        onGameEnd();
+            if (game.turnNumber == Constants.MAX_TURNS -1) {
+                // On the penultimate turn call onGameEnd() (after the final move the processes are
+                // forced to terminate by halite.exe)
+                onGameEnd();
+            }
+        } while (game.turnNumber != Constants.MAX_TURNS );
     }
+
+    protected abstract String getBotName();
 
     protected abstract void onTurnStart();
 

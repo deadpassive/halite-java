@@ -2,6 +2,7 @@ package lib.models.ships;
 
 import lib.hlt.*;
 import lib.models.genes.ShipGenes;
+import lib.models.modes.ShipMode;
 import lib.navigation.DirectionScore;
 import lib.navigation.NavigationUtils;
 import lib.navigation.ShipNavigationInterface;
@@ -15,6 +16,8 @@ public class GeneticShip extends AbstractShip implements ShipNavigationInterface
     private final ShipGenes shipGenes;
 
     private ShipMode shipMode = ShipMode.GATHERING;
+
+    private int distanceFromDeposit;
 
     private List<DirectionScore> directionScores;
 
@@ -55,7 +58,7 @@ public class GeneticShip extends AbstractShip implements ShipNavigationInterface
 
                             // At most 1000, sometimes this can exceed 1000 without the min because lots of halite can drop in the same cell when ships crash
                             return new DirectionScore(
-                                    Math.min(NavigationUtils.totalHaliteAtPositions(game.gameMap, positionsInRay) / positionsInRay.size(), 1000)
+                                    Math.min(NavigationUtils.totalHaliteAtPositions(game.gameMap, positionsInRay, this.getPosition()) / positionsInRay.size(), 1000)
                                     , d
                             );
                         }
@@ -66,16 +69,24 @@ public class GeneticShip extends AbstractShip implements ShipNavigationInterface
                 break;
 
             case RETURNING:
+                List<Position> depositories = game.me.dropoffs.values().stream().map(d -> d.position).collect(Collectors.toList());
+                depositories.add(game.me.shipyard.position);
+
+                Position cloesestDepository = NavigationUtils.closestPosition(this.getPosition(), depositories, game.gameMap);
                 directionScores.addAll(Direction.ALL_CARDINALS.stream()
-                        .map(d -> new DirectionScore(1000 - game.gameMap.calculateDistance(this.getPosition().directionalOffset(d), game.me.shipyard.position), d))
+                        .map(d -> new DirectionScore(1000 - game.gameMap.calculateDistance(this.getPosition().directionalOffset(d), cloesestDepository), d))
                         .collect(Collectors.toList())
                 );
-                directionScores.add(new DirectionScore(1000 - game.gameMap.calculateDistance(this.getPosition(), game.me.shipyard.position), Direction.STILL));
+                directionScores.add(new DirectionScore(1000 - game.gameMap.calculateDistance(this.getPosition(), cloesestDepository), Direction.STILL));
                 break;
         }
-        Log.log(String.format("Ship %s - %s", this.getId(), directionScores));
-
     }
+
+    public void updateDistanceFromDeposit(Game game) {
+        Position shipPosition = this.getPosition();
+        distanceFromDeposit = game.gameMap.calculateDistance(shipPosition, NavigationUtils.closestDepository(shipPosition, game));
+    }
+
     public ShipMode getShipMode() {
         return shipMode;
     }
@@ -90,6 +101,10 @@ public class GeneticShip extends AbstractShip implements ShipNavigationInterface
 
     public ShipGenes getShipGenes() {
         return shipGenes;
+    }
+
+    public int getDistanceFromDeposit() {
+        return distanceFromDeposit;
     }
 
     @Override

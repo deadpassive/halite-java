@@ -236,6 +236,7 @@ public class GeneticBot extends AbstractBot<GeneticShip> {
                         .withMapSize(game.gameMap.height)
                         .withPlayers(game.players.size())
                         .withHaliteStockpiled(game.me.halite)
+                        .withGeneSource(geneSource)
                         .build()
         );
     }
@@ -289,7 +290,7 @@ public class GeneticBot extends AbstractBot<GeneticShip> {
         try {
             // Load ship genes
             shipGenes = geneReader.readShipGenes(geneSource);
-            shipGenes.setGameId(gameId);
+            shipGenes.setBotId(gameId);
             Log.log(String.format("Ship genes: %s", shipGenes));
         } catch (IOException e){
             Log.log(String.format("Failed to load ship genes %s", e.getMessage()));
@@ -297,7 +298,7 @@ public class GeneticBot extends AbstractBot<GeneticShip> {
         try {
             // Load bot genes
             botGenes = geneReader.readBotGenes(geneSource);
-            botGenes.setGameId(gameId);
+            botGenes.setBotId(gameId);
             Log.log(String.format("Bot genes: %s", botGenes));
         } catch (IOException e){
             Log.log(String.format("Failed to load bot genes %s", e.getMessage()));

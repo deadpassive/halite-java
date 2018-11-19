@@ -1,6 +1,10 @@
 package lib.models;
 
+import lib.io.GeneSource;
+import org.hibernate.annotations.CreationTimestamp;
+
 import javax.persistence.*;
+import java.sql.Timestamp;
 import java.util.UUID;
 
 @Entity
@@ -10,7 +14,14 @@ public class GameDetails {
     // Unique identifier for this game (from this bots perspective)
     @Id
     @Column(name = "bot_id", updatable = false, nullable = false)
-    private UUID gameId;
+    private UUID botId;
+
+    @CreationTimestamp
+    @Column(name = "dt")
+    private Timestamp dt;
+
+    @Column(name = "gene_source", updatable = false, nullable = false)
+    private GeneSource geneSource;
 
     // How many players are in the game
     @Column(name = "players", nullable = false)
@@ -32,7 +43,7 @@ public class GameDetails {
     @Override
     public String toString() {
         return "GameDetails{" +
-                "gameId=" + gameId +
+                "botId=" + botId +
                 ", players=" + players +
                 ", mapSize=" + mapSize +
                 ", initialHalite=" + initialHalite +
@@ -41,12 +52,20 @@ public class GameDetails {
                 '}';
     }
 
-    public UUID getGameId() {
-        return gameId;
+    public GeneSource getGeneSource() {
+        return geneSource;
     }
 
-    public void setGameId(UUID gameId) {
-        this.gameId = gameId;
+    public void setGeneSource(GeneSource geneSource) {
+        this.geneSource = geneSource;
+    }
+
+    public UUID getBotId() {
+        return botId;
+    }
+
+    public void setBotId(UUID botId) {
+        this.botId = botId;
     }
 
     public int getPlayers() {
@@ -101,12 +120,18 @@ public class GameDetails {
         // Average amount of halite in each map cell
         private double initialHaliteDensity;
         private int haliteStockpiled;
+        private GeneSource geneSource;
 
         private GameDetailsBuilder() {
         }
 
         public static GameDetailsBuilder aGameDetails() {
             return new GameDetailsBuilder();
+        }
+
+        public GameDetailsBuilder withGeneSource(GeneSource geneSource) {
+            this.geneSource = geneSource;
+            return this;
         }
 
         public GameDetailsBuilder withGameId(UUID gameId) {
@@ -141,12 +166,13 @@ public class GameDetails {
 
         public GameDetails build() {
             GameDetails gameDetails = new GameDetails();
-            gameDetails.setGameId(gameId);
+            gameDetails.setBotId(gameId);
             gameDetails.setPlayers(players);
             gameDetails.setMapSize(mapSize);
             gameDetails.setInitialHalite(initialHalite);
             gameDetails.setInitialHaliteDensity(initialHaliteDensity);
             gameDetails.setHaliteStockpiled(haliteStockpiled);
+            gameDetails.setGeneSource(geneSource);
             return gameDetails;
         }
     }

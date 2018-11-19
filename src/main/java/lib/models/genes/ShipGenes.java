@@ -12,8 +12,8 @@ public class ShipGenes {
     @Column(name = "ship_id", updatable = false, nullable = false)
     private Long id;
 
-    @Column(name = "game_id", nullable = false)
-    private UUID gameId;
+    @Column(name = "bot_id", nullable = false)
+    private UUID botId;
 
     @Column(name = "migrate_halite_amount", nullable = false)
     private int migrateHaliteAmount;
@@ -31,7 +31,7 @@ public class ShipGenes {
     public String toString() {
         return "ShipGenes{" +
                 "id=" + id +
-                ", gameId=" + gameId +
+                ", botId=" + botId +
                 ", migrateHaliteAmount=" + migrateHaliteAmount +
                 ", returnHaliteAmount=" + returnHaliteAmount +
                 ", gatherPositionHaliteAmount=" + gatherPositionHaliteAmount +
@@ -39,12 +39,12 @@ public class ShipGenes {
                 '}';
     }
 
-    public UUID getGameId() {
-        return gameId;
+    public UUID getBotId() {
+        return botId;
     }
 
-    public void setGameId(UUID gameId) {
-        this.gameId = gameId;
+    public void setBotId(UUID botId) {
+        this.botId = botId;
     }
 
     public Long getId() {

@@ -8,12 +8,8 @@ import java.util.UUID;
 public class BotGenes {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    @Column(name = "bot_id", updatable = false, nullable = false)
-    private Long id;
-
-    @Column(name = "game_id", nullable = false)
-    private UUID gameId;
+    @Column(name = "bot_id", nullable = false)
+    private UUID botId;
 
     @Column(name = "create_ship_turn_remaining_threshold", nullable = false)
     private double createShipTurnRemainingThreshold;
@@ -48,20 +44,12 @@ public class BotGenes {
                 '}';
     }
 
-    public UUID getGameId() {
-        return gameId;
+    public UUID getBotId() {
+        return botId;
     }
 
-    public void setGameId(UUID gameId) {
-        this.gameId = gameId;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
+    public void setBotId(UUID botId) {
+        this.botId = botId;
     }
 
     public void setCreateShipTurnRemainingThreshold(double createShipTurnRemainingThreshold) {

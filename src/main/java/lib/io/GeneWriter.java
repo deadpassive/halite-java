@@ -11,7 +11,8 @@ import java.util.logging.Level;
 
 public class GeneWriter {
 
-    public GeneWriter(){}
+    public GeneWriter(){
+    }
 
     public void writeGenes(BotGenes botGenes, ShipGenes shipGenes, GameDetails gameDetails) {
         // Reduce hibernate logging so that stdout is kept clear for halite.exe

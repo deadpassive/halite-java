@@ -17,8 +17,7 @@ public class GeneReader {
 
     private Random random = new Random();
 
-    private final static String OPTIMIZED_SHIP_GENES_FILE_PATH = "optimized-ship-genes.csv";
-    private final static String OPTIMIZED_BOT_GENES_FILE_PATH = "optimized-bot-genes.csv";
+    private final static String OPTIMIZED_GENES_FILE_PATH = "optimized-genes.csv";
 
     private final static String HAND_TUNED_SHIP_GENES_FILE_PATH = "hand-tuned-ship-genes.json";
     private final static String HAND_TUNED_BOT_GENEs_FILE_PATH = "hand-tuned-bot-genes.json";
@@ -35,7 +34,7 @@ public class GeneReader {
         switch (source){
             case OPTIMIZED:
                 // TODO switch to readOptimizedBotGenes
-                return randomBotGenes();
+                return readOptimizedBotGenes();
             case HAND_TUNED:
                 return readHandTunedBotGenes();
             case RANDOM:
@@ -88,13 +87,13 @@ public class GeneReader {
      * @throws IOException if there is a problem loading the ship genes csv
      */
     private BotGenes readOptimizedBotGenes() throws IOException {
-        InputStream genes = getClass().getClassLoader().getResourceAsStream(OPTIMIZED_BOT_GENES_FILE_PATH);
+        InputStream genes = getClass().getClassLoader().getResourceAsStream(OPTIMIZED_GENES_FILE_PATH);
 
-        Table table = Table.read().csv(genes, OPTIMIZED_BOT_GENES_FILE_PATH);
+        Table table = Table.read().csv(genes, OPTIMIZED_GENES_FILE_PATH);
 
         // Filter incompatible rows (for maps with the wrong size / number of players)
         table = table.dropWhere(table.numberColumn("map_size").isNotEqualTo(game.gameMap.height));
-        table = table.dropWhere(table.numberColumn("palyers").isNotEqualTo(game.players.size()));
+        table = table.dropWhere(table.numberColumn("players").isNotEqualTo(game.players.size()));
 
         // Sort rows by how similar the halite density is
         DoubleColumn haliteDensityDelta = DoubleColumn.create(
@@ -106,15 +105,13 @@ public class GeneReader {
         table.addColumns(haliteDensityDelta);
         table.sortDescendingOn("halite_density_delta");
 
-        System.out.println(table);
         BotGenes botGenes = new BotGenes();
-
         botGenes.setCreateDropoffAverageDistanceToHalite(table.doubleColumn("create_dropoff_averaged_distance_to_halite").get(0));
-        botGenes.setCreateShipTurnRemainingThreshold(table.doubleColumn("create_dropoff_averaged_distance_to_halite").get(0));
-        botGenes.setCreateShipHaliteRemainingThreshold(table.doubleColumn("create_dropoff_averaged_distance_to_halite").get(0));
-        botGenes.setCreateDropoffTurnRemainingThreshold(table.doubleColumn("create_dropoff_averaged_distance_to_halite").get(0));
-        botGenes.setCreateDropoffHaliteRemainingThreshold(table.doubleColumn("create_dropoff_averaged_distance_to_halite").get(0));
-        botGenes.setForcedReturnTurnRemainingThreshold(table.doubleColumn("create_dropoff_averaged_distance_to_halite").get(0));
+        botGenes.setCreateShipTurnRemainingThreshold(table.doubleColumn("create_ship_turn_remaining_threshold").get(0));
+        botGenes.setCreateShipHaliteRemainingThreshold(table.doubleColumn("create_ship_halite_remaining_threshold").get(0));
+        botGenes.setCreateDropoffTurnRemainingThreshold(table.doubleColumn("create_dropoff_turn_remaining_threshold").get(0));
+        botGenes.setCreateDropoffHaliteRemainingThreshold(table.doubleColumn("create_dropoff_halite_remaining_threshold").get(0));
+        botGenes.setForcedReturnTurnRemainingThreshold(table.doubleColumn("forced_return_turn_remaining_threshold").get(0));
 
         return botGenes;
     }
@@ -125,9 +122,9 @@ public class GeneReader {
      * @throws IOException if there is a problem loading the ship genes csv
      */
     private ShipGenes readOptimizedShipGenes() throws IOException {
-        InputStream genes = getClass().getClassLoader().getResourceAsStream(OPTIMIZED_SHIP_GENES_FILE_PATH);
+        InputStream genes = getClass().getClassLoader().getResourceAsStream(OPTIMIZED_GENES_FILE_PATH);
 
-        Table table = Table.read().csv(genes, OPTIMIZED_SHIP_GENES_FILE_PATH);
+        Table table = Table.read().csv(genes, OPTIMIZED_GENES_FILE_PATH);
 
         // Filter incompatible rows (for maps with the wrong size / number of players)
         table = table.dropWhere(table.numberColumn("map_size").isNotEqualTo(game.gameMap.height));
@@ -145,9 +142,10 @@ public class GeneReader {
 
         ShipGenes shipGenes = new ShipGenes();
 
-        shipGenes.setGatherPositionHaliteAmount((int) Math.round(table.doubleColumn("collect_threshold").get(0)));
+        shipGenes.setGatherPositionHaliteAmount(80);
+        // shipGenes.setGatherPositionHaliteAmount((int) Math.round(table.doubleColumn("collect_threshold").get(0)));
         shipGenes.setRayLength((int) Math.round(table.doubleColumn("ray_length").get(0)));
-        shipGenes.setReturnHaliteAmount((int) Math.round(table.doubleColumn("deposit_threshold").get(0)));
+        shipGenes.setReturnHaliteAmount((int) Math.round(table.doubleColumn("return_halite_amount").get(0)));
 
         return shipGenes;
     }

@@ -90,9 +90,11 @@ public class NavigationManager implements NavigationManagerInterface{
         occupiedPositions.clear();
         possibleEnemyPositions.clear();
 
+        List<Position> positionsNearDropoffs = getPositionsNearDropoffs(game);
+        Log.log(String.format("Ignoring collisions with enemies at %s positions", positionsNearDropoffs.size()));
+
         for (Player player : game.players) {
             // Add all possible enemy positions
-            // TODO how to only put in objects that are not already in?
             if (!player.id.equals(game.me.id)) {
                 possibleEnemyPositions.addAll(player.ships.values().stream()
                         .flatMap(s -> {
@@ -100,9 +102,22 @@ public class NavigationManager implements NavigationManagerInterface{
                             positions.add(s.position);
                             return positions.stream();
                         })
+                        .distinct()
+                        .filter(p -> !positionsNearDropoffs.contains(p))
+                        .map(game.gameMap::normalize)
                         .collect(Collectors.toList()));
             }
         }
+        Log.log(String.format("Avoiding %s enemy positions", possibleEnemyPositions.size()));
+    }
+
+    private List<Position> getPositionsNearDropoffs(Game game) {
+        List<Position> depositPositions = game.me.dropoffs.values().stream().map(dropoff -> dropoff.position).collect(Collectors.toList());
+        depositPositions.add(game.me.shipyard.position);
+
+        return depositPositions.stream()
+                .flatMap(p -> p.getSurroundingCardinals().stream())
+                .collect(Collectors.toList());
     }
 
     public void addIgnoredPosition(Position position) {

@@ -23,6 +23,8 @@ public class GeneticBot extends AbstractBot<GeneticShip> {
 
     private GeneSource geneSource = GeneSource.RANDOM;
 
+    private boolean writeToDb;
+
     private UUID gameId = UUID.randomUUID();
 
     private ShipGenes shipGenes;
@@ -272,6 +274,10 @@ public class GeneticBot extends AbstractBot<GeneticShip> {
                     geneSource = GeneSource.OPTIMIZED;
                     break;
             }
+            writeToDb = true;
+        } else if (args.length == 0) {
+            geneSource = GeneSource.OPTIMIZED;
+            writeToDb = false;
         }
         initialHalite = haliteOnMap(game.gameMap);
         remainingHalite = initialHalite;
@@ -305,10 +311,12 @@ public class GeneticBot extends AbstractBot<GeneticShip> {
 
     @Override
     protected void onGameEnd() {
-        try {
-            writeGenes();
-        } catch (Exception e) {
-            Log.log(e.getMessage());
+        if (writeToDb) {
+            try {
+                writeGenes();
+            } catch (Exception e) {
+                Log.log(e.getMessage());
+            }
         }
     }
 

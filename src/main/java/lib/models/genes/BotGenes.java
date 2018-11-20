@@ -17,7 +17,7 @@ public class BotGenes {
     @Column(name = "create_ship_halite_remaining_threshold", nullable = false)
     private double createShipHaliteRemainingThreshold;
 
-    @Column(name = "create_dropoff_averageD_distance_to_halite", nullable = false)
+    @Column(name = "create_dropoff_averaged_distance_to_halite", nullable = false)
     private double createDropoffAverageDistanceToHalite;
 
     @Column(name = "forced_return_turn_remaining_threshold", nullable = false)

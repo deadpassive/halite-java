@@ -42,7 +42,7 @@ public class InvestmentManager {
                 break;
 
             case DROPOFF:
-                Log.log("Investing in a ship if possible");
+                Log.log("Investing in a dropoff if possible");
                 Command spawnDropoffCommand = spawnDropoff(game);
                 if (spawnDropoffCommand != null) {
                     command.add(spawnDropoffCommand);
